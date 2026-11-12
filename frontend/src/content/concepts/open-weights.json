@@ -1,0 +1,112 @@
+{
+  "id": "open-weights",
+  "title_question": "Can I own a copy of an AI?",
+  "also_called": "Open-Weight Models & Local AI Runtimes",
+  "one_liner": "Some AI models can be downloaded and run on your own hardware; these are open-weight models.",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Cloud AI sends your text away",
+      "text": "With cloud services, every message travels over the internet to a technology provider's remote data center for processing.",
+      "stage_state": { "highlight": "cloud", "description": "Packets moving from laptop over internet to remote server racks." }
+    },
+    {
+      "step_number": 2,
+      "title": "Open-weight models run locally",
+      "text": "With an open-weight release, you download the mathematical model file directly to your laptop or private server.",
+      "stage_state": { "highlight": "local", "description": "Model weights stored inside local disk boundary with green security shield." }
+    },
+    {
+      "step_number": 3,
+      "title": "Trade-offs: privacy versus hardware demands",
+      "text": "Running locally protects private files and provides complete control, but requires sufficient memory, manual setup, and self-managed security updates.",
+      "stage_state": { "highlight": "tradeoffs", "description": "Balance scale showing privacy and offline capability against RAM and configuration time." }
+    },
+    {
+      "step_number": 4,
+      "title": "Read the community license terms",
+      "text": "Open weights is distinct from open source. Most creators provide the final weights while retaining custom usage terms and commercial thresholds.",
+      "stage_state": { "highlight": "license", "description": "License document displaying acceptable use criteria and user threshold clauses." }
+    }
+  ],
+  "analogy": {
+    "text": "Think of it like buying a finished cake from a bakery to take home. You own the cake sitting in your kitchen, but you did not receive the proprietary recipe, ingredient ratios, or kitchen ovens.",
+    "breaks": "Some open science projects do release their training data and preparation scripts, and licenses vary substantially between community models."
+  },
+  "myth": {
+    "claim": "Open-weight models are open source in the traditional software sense.",
+    "reality": "True open source provides the complete source code, training datasets, and unencumbered commercial rights. Open-weight models share the trained parameters under custom licenses."
+  },
+  "demo": {
+    "type": "DataFlowToggle",
+    "config": {
+      "has_size_dial": true
+    }
+  },
+  "seen_in": [
+    "Ollama running lightweight models locally on a MacBook or Windows PC",
+    "LM Studio providing a private desktop chat interface",
+    "Private company servers hosting local models behind internal firewalls"
+  ],
+  "persona_examples": {
+    "student": "Running a compact model on your laptop to summarize class notes without paying a monthly fee or needing Wi-Fi.",
+    "teacher": "Evaluating student creative essays on an offline computer so student names do not leave school grounds.",
+    "entrepreneur": "Hosting customer support intelligence on private cloud instances to maintain predictability over operational costs.",
+    "engineer_office": "Analyzing confidential patent drafts and proprietary code repositories within an air-gapped corporate environment."
+  },
+  "quiz": [
+    {
+      "question": "What is the primary difference between cloud AI and an open-weight model?",
+      "options": [
+        "Cloud AI can only process English, while open-weight models understand any language",
+        "Cloud AI processes prompts on remote corporate servers, while open-weight models can execute on your own machine",
+        "Open-weight models cost millions of dollars for every user prompt",
+        "Cloud AI requires no internet connection"
+      ],
+      "correct_index": 1,
+      "explanation": "Open-weight models provide the model parameters directly so they can run on private local hardware."
+    },
+    {
+      "question": "Why might a healthcare clinic choose a local open-weight model instead of a public cloud chatbot?",
+      "options": [
+        "Because local models have larger parameter counts than cloud models",
+        "To keep patient diagnostic records within local storage without transmitting data to third parties",
+        "Because local models make zero medical mistakes",
+        "Local models operate without consuming any electrical power"
+      ],
+      "correct_index": 1,
+      "explanation": "Local execution keeps sensitive records inside private network perimeters, avoiding third-party data processing."
+    },
+    {
+      "question": "Is the largest available model always the optimal choice for your computer?",
+      "options": [
+        "Yes, larger models are superior for every scenario",
+        "No, larger models require substantial RAM and compute, whereas smaller quantized models run much faster and fit normal laptops",
+        "Yes, smaller models are unable to generate complete sentences",
+        "No, larger models are illegal to download"
+      ],
+      "correct_index": 1,
+      "explanation": "Hardware memory, speed, and energy costs dictate practical model selection. A compact model often satisfies daily tasks cleanly."
+    }
+  ],
+  "explain_back": {
+    "prompt": "Complete this sentence to prove you understand:",
+    "template": "An open-weight model lets you download and run the AI on your own hardware for privacy, but you must supply adequate memory and manage your own updates."
+  },
+  "technical": {
+    "bullets": [
+      "Model weights represent millions or billions of learned floating-point matrices (FP16 or BF16 precision).",
+      "Quantization compresses weights to lower precision (4-bit or 8-bit GGUF/AWQ formats), cutting RAM requirements by up to 75% with modest fidelity loss.",
+      "Mixture-of-Experts (MoE) architectures activate only a subset of total parameters per token, lowering computational latency.",
+      "Local runtimes (such as llama.cpp or vLLM) utilize hardware acceleration via Metal, CUDA, or Vulkan kernels."
+    ],
+    "code_panel": {
+      "title": "Running a Local Model via CLI",
+      "language": "bash",
+      "code": "# Example: running an open-weight model locally using Ollama\nollama run llama3.2:3b\n\n# Or using llama.cpp with a 4-bit quantized GGUF file\n./main -m ./models/llama-3.2-3b-instruct-q4_k_m.gguf \\\n       -p \"Summarize this text locally:\" \\\n       --threads 6 -ngl 33"
+    }
+  },
+  "headline_tags": ["open-weights", "llama", "license"],
+  "status_board_ids": ["status-llama-current", "status-llama-license"],
+  "resources": ["res-llama-docs", "res-llama-repo"]
+}

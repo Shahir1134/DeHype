@@ -1,0 +1,52 @@
+[
+  {
+    "id": "status-llama-current",
+    "subject": "Llama Model Family",
+    "claim": "Current primary release series and weights",
+    "current_status": "Llama 3.1 & 3.3 series available across 8B, 70B, and preview multimodal checkpoints under Meta Community License.",
+    "verified_at": "2026-11-07",
+    "source_url": "https://ai.meta.com/llama/",
+    "source_label": "Meta AI Official Documentation",
+    "report_status": "verified"
+  },
+  {
+    "id": "status-llama-license",
+    "subject": "Llama Commercial Threshold",
+    "claim": "Monthly active user limit requiring additional enterprise license",
+    "current_status": "Products with greater than 700 million monthly active users must request a special commercial license from Meta.",
+    "verified_at": "2026-11-07",
+    "source_url": "https://ai.meta.com/llama/license/",
+    "source_label": "Meta Llama Community License Agreement",
+    "report_status": "verified"
+  },
+  {
+    "id": "status-mcp-spec",
+    "subject": "Model Context Protocol (MCP)",
+    "claim": "Specification creator and open standard status",
+    "current_status": "Introduced by Anthropic in November 2024 as an open protocol. Adopted by Claude Desktop, Zed, Cursor, Antigravity, and community clients.",
+    "verified_at": "2026-11-07",
+    "source_url": "https://modelcontextprotocol.io",
+    "source_label": "Official MCP Specification",
+    "report_status": "verified"
+  },
+  {
+    "id": "status-mcp-transport",
+    "subject": "MCP Transports",
+    "claim": "Standard communication mechanisms supported",
+    "current_status": "Supports local standard input/output (stdio) for local tools and Server-Sent Events (SSE) over HTTP for remote servers.",
+    "verified_at": "2026-11-07",
+    "source_url": "https://modelcontextprotocol.io",
+    "source_label": "MCP Architecture Documentation",
+    "report_status": "verified"
+  },
+  {
+    "id": "status-multi-agent-frameworks",
+    "subject": "Multi-Agent Frameworks",
+    "claim": "Leading production multi-agent orchestration engines",
+    "current_status": "LangGraph, CrewAI, AutoGen, and Swarm support stateful supervisor loops, hierarchical agent handoffs, and human-in-the-loop checkpoints.",
+    "verified_at": "2026-11-07",
+    "source_url": "https://docs.langchain.com/oss/python/langchain/multi-agent",
+    "source_label": "LangChain Multi-Agent Architecture Guide",
+    "report_status": "verified"
+  }
+]

@@ -1,0 +1,70 @@
+# =============================================================================
+# DEHYPE .gitignore
+# =============================================================================
+
+# --- Environment Secrets & Credentials ---
+.env
+.env.*
+!.env.example
+frontend/.env.local
+frontend/.env.*.local
+
+# --- Databases & Temporary Locks ---
+*.db
+*.db-shm
+*.db-wal
+platform_v2_backup_before_dedup.db
+platform.db
+live_news.db
+pipeline_cache.db
+frontend/*.db
+
+# Whitelist the essential seeded production database
+!platform_v2.db
+
+# --- Legacy v1 Files (Superseded by React frontend) ---
+/app.js
+/style.css
+/index.html
+
+# --- One-off Historical Fix & Recovery Scripts ---
+diagnose.py
+inspect_missing.py
+repair_arson.py
+repair_sources.py
+recover_cards.py
+backfill_2026.py
+
+# --- Ephemeral Caches, Logs & Scratch Dumps ---
+logs/
+audio_cache/
+test_data/
+*.log
+output_final.json
+*.tmp
+
+# --- Python Runtime & Test Caches ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+venv/
+env/
+.venv/
+
+# --- Node & Frontend Build Artifacts ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.npm/
+
+# --- Operating System & Editor Artifacts ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/

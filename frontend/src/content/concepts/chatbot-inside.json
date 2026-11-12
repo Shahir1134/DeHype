@@ -1,0 +1,112 @@
+{
+  "id": "chatbot-inside",
+  "title_question": "What is inside a chatbot?",
+  "also_called": "Large Language Model (LLM) and Transformer Architecture",
+  "one_liner": "A chatbot is an advanced autocomplete: it predicts the next small piece of text, adds it, and repeats.",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Text is broken into tokens",
+      "text": "When you type a prompt, the system slices your words into small fragments called tokens (roughly four letters each).",
+      "stage_state": { "highlight": "tokens", "description": "Incoming sentence split into numbered token blocks." }
+    },
+    {
+      "step_number": 2,
+      "title": "Scores every candidate word",
+      "text": "The model calculates probabilities for thousands of possible next tokens based on patterns learned during training.",
+      "stage_state": { "highlight": "probabilities", "description": "Bar charts rise showing percentage likelihood for top candidate tokens." }
+    },
+    {
+      "step_number": 3,
+      "title": "Picks one token and repeats",
+      "text": "It selects one candidate token, attaches it to the text, and feeds the entire updated paragraph back into the engine to predict the next word.",
+      "stage_state": { "highlight": "generation", "description": "Chosen token attaches to the sentence, cycling to the next position." }
+    },
+    {
+      "step_number": 4,
+      "title": "Pattern fluency is distinct from verified truth",
+      "text": "Because the engine optimizes for plausible-sounding phrasing, an answer can read like deliberate thinking even when the underlying claim is incorrect.",
+      "stage_state": { "highlight": "verification", "description": "Visual indicator showing plausible linguistic coherence alongside factual verification check." }
+    }
+  ],
+  "analogy": {
+    "text": "Think of it like smart phone autocomplete that has studied millions of books. A reader with a highlighter (the attention mechanism) skims backwards across earlier words to decide which ideas connect.",
+    "breaks": "A human understands the physical meaning behind sentences. The model calculates statistical relationships between text tokens, and multiple attention heads run in parallel across dozens of layers."
+  },
+  "myth": {
+    "claim": "A chatbot looks up live information on the web by default.",
+    "reality": "Standard models answer purely from patterns stored in their internal parameters unless connected to a search tool or private files."
+  },
+  "demo": {
+    "type": "NextWordDemo",
+    "config": {
+      "has_attention_mode": true
+    }
+  },
+  "seen_in": [
+    "Smartphone keyboard next-word suggestions",
+    "ChatGPT, Claude, Gemini conversational replies",
+    "Email smart compose and sentence completion"
+  ],
+  "persona_examples": {
+    "student": "Why an AI helper can invent an academic citation that looks authentic but leads to a non-existent paper.",
+    "teacher": "Why student drafts generated with AI sound articulate and fluent yet sometimes assert incorrect historical dates.",
+    "entrepreneur": "Why language models vary in phrasing across runs, making prompt constraints and automated testing essential.",
+    "engineer_office": "How context window boundaries determine how many pages of meeting notes can be pasted at once."
+  },
+  "quiz": [
+    {
+      "question": "What fundamental action does a language model perform at each step?",
+      "options": [
+        "It searches an indexed database of verified facts",
+        "It predicts the most probable next token and repeats",
+        "It verifies whether the user is authorized to ask the question",
+        "It executes Python code to solve the prompt"
+      ],
+      "correct_index": 1,
+      "explanation": "A language model operates as a statistical next-token predictor, generating text one piece at a time."
+    },
+    {
+      "question": "Why can an AI response sound completely confident while stating an untrue fact?",
+      "options": [
+        "The model is intentionally trying to mislead users",
+        "It was trained to optimize for persuasive grammar and plausible patterns, not verified truth",
+        "The computer ran out of memory while typing",
+        "Someone hacked the server connection"
+      ],
+      "correct_index": 1,
+      "explanation": "Language models predict fluent text based on statistical likelihood rather than checking facts against reality."
+    },
+    {
+      "question": "What is the primary role of the attention mechanism (the transformer core)?",
+      "options": [
+        "To make the font size larger for headings",
+        "To allow words in a sentence to connect with other relevant words regardless of distance",
+        "To reduce power consumption of computer cooling fans",
+        "To translate speech into video files"
+      ],
+      "correct_index": 1,
+      "explanation": "Attention allows every word to look at all other words simultaneously, linking pronouns and context across long paragraphs."
+    }
+  ],
+  "explain_back": {
+    "prompt": "Complete this sentence to prove you understand:",
+    "template": "A chatbot works by predicting the next probable token repeatedly, which is why it can sound articulate even when stating an unverified fact."
+  },
+  "technical": {
+    "bullets": [
+      "Text is encoded into discrete tokens (using BPE or WordPiece algorithms) and mapped to high-dimensional embedding vectors.",
+      "Stacked transformer layers apply Multi-Head Self-Attention (Query, Key, Value dot-products) followed by Feed-Forward Networks.",
+      "The final linear projection and Softmax layer produce a probability distribution over the full vocabulary (~128k tokens).",
+      "Decoding strategies (temperature, top-p, top-k) balance predictable greediness against creative divergence."
+    ],
+    "code_panel": {
+      "title": "Minimal Next-Token Generation Loop",
+      "language": "python",
+      "code": "# Minimal autoregressive generation loop (pseudocode)\ntokens = tokenizer.encode(prompt)\nfor _ in range(max_new_tokens):\n    logits = model(tokens)                  # [batch, seq_len, vocab_size]\n    next_token_logits = logits[:, -1, :] / temperature\n    probs = softmax(next_token_logits, dim=-1)\n    next_token = sample(probs, top_p=0.9)  # Pick next token\n    tokens.append(next_token)\n    if next_token == tokenizer.eos_token_id:\n        break\nreturn tokenizer.decode(tokens)"
+    }
+  },
+  "headline_tags": ["architecture", "language-model", "meta"],
+  "status_board_ids": [],
+  "resources": ["res-trans-yt", "res-trans-docs", "res-trans-repo"]
+}

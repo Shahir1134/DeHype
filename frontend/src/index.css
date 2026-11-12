@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg: #FAF7F2;
+    --surface: #FFFFFF;
+    --surface-hover: #F6F2EB;
+    --ink: #1F1B16;
+    --muted: #6B6259;
+    --line: #E8E1D6;
+
+    /* Default Student Accent */
+    --accent: #5B5BD6;
+    --accent-soft: #ECECFB;
+    --accent-ink: #3F3FA8;
+
+    --font-heading: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Persona Overrides */
+  [data-persona="student"] {
+    --accent: #5B5BD6;
+    --accent-soft: #ECECFB;
+    --accent-ink: #3F3FA8;
+  }
+  [data-persona="teacher"] {
+    --accent: #E8702A;
+    --accent-soft: #FDEEE3;
+    --accent-ink: #A8480F;
+  }
+  [data-persona="entrepreneur"] {
+    --accent: #0E9F6E;
+    --accent-soft: #E3F6EE;
+    --accent-ink: #0A6B49;
+  }
+  [data-persona="engineer_office"] {
+    --accent: #2563EB;
+    --accent-soft: #E4ECFD;
+    --accent-ink: #1E40AF;
+  }
+
+  /* Dark Mode */
+  .dark {
+    --bg: #141312;
+    --surface: #1E1C1A;
+    --surface-hover: #272421;
+    --ink: #F5F2EB;
+    --muted: #9E968D;
+    --line: #312D28;
+  }
+
+  .dark[data-persona="student"] {
+    --accent-soft: #24244D;
+    --accent-ink: #A6A6F5;
+  }
+  .dark[data-persona="teacher"] {
+    --accent-soft: #452414;
+    --accent-ink: #F7A87A;
+  }
+  .dark[data-persona="entrepreneur"] {
+    --accent-soft: #143B2B;
+    --accent-ink: #6EE7B7;
+  }
+  .dark[data-persona="engineer_office"] {
+    --accent-soft: #172B57;
+    --accent-ink: #93C5FD;
+  }
+
+  /* Font size scale */
+  html.text-size-sm {
+    font-size: 15px;
+  }
+  html.text-size-base {
+    font-size: 17px;
+  }
+  html.text-size-lg {
+    font-size: 19px;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--font-heading);
+    letter-spacing: -0.015em;
+  }
+
+  /* Sticky header offset */
+  h1, h2, h3, section, article {
+    scroll-margin-top: 80px;
+  }
+}
+
+/* Dotted underline for jargon terms */
+.jargon-term {
+  text-decoration: underline dotted 1.5px var(--accent);
+  text-underline-offset: 3px;
+  cursor: help;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+.jargon-term:hover {
+  background-color: var(--accent-soft);
+  border-radius: 2px;
+}

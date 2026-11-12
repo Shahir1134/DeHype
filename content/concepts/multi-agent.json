@@ -1,0 +1,113 @@
+{
+  "id": "multi-agent",
+  "title_question": "How do teams of AI agents work together?",
+  "also_called": "Multi-Agent Architecture & Collaborative AI Systems",
+  "one_liner": "Instead of asking one AI model to do everything, a multi-agent system divides big jobs among specialized AI helpers that check each other's work.",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Complex tasks overwhelm a single prompt",
+      "text": "When a single language model tries to research sources, outline strategy, draft paragraphs, and format code all at once, errors and oversights accumulate quickly.",
+      "stage_state": { "highlight": "overwhelmed_prompt", "description": "Single model icon struggling under multiple competing task instructions." }
+    },
+    {
+      "step_number": 2,
+      "title": "Specialized roles are assigned",
+      "text": "The system creates distinct virtual agents with focused system instructions: a Researcher gathers facts, a Writer drafts text, and a Critic inspects for quality.",
+      "stage_state": { "highlight": "specialized_roles", "description": "Three focused agent avatars with specific tool badges (Search, Drafting, Review)." }
+    },
+    {
+      "step_number": 3,
+      "title": "A supervisor orchestrates handoffs",
+      "text": "A coordinator agent manages conversation state, routes intermediate results between roles, and halts execution when the objective is met.",
+      "stage_state": { "highlight": "supervisor_routing", "description": "Central router directing message traffic between specialized agent nodes." }
+    },
+    {
+      "step_number": 4,
+      "title": "Collaborative critique catches mistakes",
+      "text": "Before presenting the result, the critic agent compares the draft against your initial guidelines and sends back targeted suggestions for revision.",
+      "stage_state": { "highlight": "critique_loop", "description": "Feedback loop returning draft for revision before final delivery checkmark." }
+    }
+  ],
+  "analogy": {
+    "text": "Think of it like a newsroom. Rather than asking a single person to report from the field, write the article, fact-check claims, and format the printed paper alone, the newsroom divides the work: a reporter uncovers facts, an editor verifies sources, and a copywriter polishes the phrasing.",
+    "breaks": "Human journalists possess real-world judgment and common sense. AI agents can get trapped in repetitive critique loops or reinforce each other's misunderstandings if the supervisor router lacks strict iteration limits."
+  },
+  "myth": {
+    "claim": "Deploying more AI agents in a swarm will solve every complex problem.",
+    "reality": "Adding too many agents introduces communication latency, token expense, and coordination confusion. A tight loop of two specialized roles (creator and reviewer) frequently outperforms large, noisy swarms."
+  },
+  "demo": {
+    "type": "MultiAgentDemo",
+    "config": {
+      "has_critic_loop": true,
+      "has_supervisor_guard": true
+    }
+  },
+  "seen_in": [
+    "Autonomous research tools like Perplexity Deep Research or Devin",
+    "Customer support pipelines where one bot triages and another resolves",
+    "Software development agents collaborating across coding, test generation, and code review"
+  ],
+  "persona_examples": {
+    "student": "Using a researcher agent to extract study points from lecture slides while a quiz agent formats flashcards from those exact excerpts.",
+    "teacher": "Having a creator agent draft lesson activities while a standards agent verifies that every problem aligns with grade-level curriculum objectives.",
+    "entrepreneur": "Automating customer onboarding where an intake agent verifies account details, a drafter prepares credentials, and an auditor logs records in your CRM.",
+    "engineer_office": "Orchestrating an implementation agent, a unit-test generation agent, and a security checker that inspect code pull requests before human review."
+  },
+  "quiz": [
+    {
+      "question": "What is the primary advantage of a multi-agent architecture over one monolithic prompt?",
+      "options": [
+        "It eliminates the need for computer hardware",
+        "It divides complex workflows into specialized roles with independent evaluation and critique",
+        "It translates all responses into audio automatically",
+        "It prevents models from using computer memory"
+      ],
+      "correct_index": 1,
+      "explanation": "Specialized roles allow individual agents to focus on specific tasks (like research or critique) rather than getting confused trying to accomplish everything in a single prompt."
+    },
+    {
+      "question": "What critical role does the supervisor agent (or orchestrator) perform?",
+      "options": [
+        "Charges customer credit cards",
+        "Coordinates message passing, decides which agent acts next, and enforces stopping conditions",
+        "Prints documents on physical paper",
+        "Replaces the operating system"
+      ],
+      "correct_index": 1,
+      "explanation": "The supervisor orchestrates the state machine, routes work between agents, and halts execution when tasks complete or hit loop limits."
+    },
+    {
+      "question": "What can occur if a multi-agent system lacks proper stopping limits or supervision?",
+      "options": [
+        "The computer display will switch off",
+        "Agents can enter infinite critique loops, endlessly rewriting without converging while consuming tokens and time",
+        "The agents develop emotional feelings",
+        "The computer hard drive deletes itself"
+      ],
+      "correct_index": 1,
+      "explanation": "Without maximum iteration counts and clear completion criteria, agents can bounce feedback back and forth indefinitely."
+    }
+  ],
+  "explain_back": {
+    "prompt": "Complete this sentence to prove you understand:",
+    "template": "A multi-agent architecture divides complex tasks among specialized AI roles that coordinate and review each other's work, which helps catch mistakes that a single prompt might miss."
+  },
+  "technical": {
+    "bullets": [
+      "Topologies: Sequential pipelines, Hierarchical supervisor routing (hub-and-spoke), and Networked graph-based state machines (LangGraph, AutoGen, CrewAI).",
+      "State management: Shared global state versus localized message history prevents context window saturation across multi-turn interactions.",
+      "Termination criteria: Enforcing maximum iteration bounds (e.g. k <= 4) and token budgets avoids runaway recursive loops.",
+      "Human-in-the-loop checkpoints: Suspending execution state allows human operators to inspect and approve sensitive external actions before dispatch."
+    ],
+    "code_panel": {
+      "title": "Minimal Multi-Agent State Graph (LangGraph Pattern)",
+      "language": "python",
+      "code": "# Minimal Multi-Agent Supervisor Pattern (pseudocode)\nfrom typing import TypedDict, Literal\n\nclass AgentState(TypedDict):\n    task: str\n    research: str\n    draft: str\n    review_count: int\n    is_approved: bool\n\ndef supervisor(state: AgentState) -> Literal[\"researcher\", \"writer\", \"critic\", \"finish\"]:\n    if not state.get(\"research\"):\n        return \"researcher\"\n    if not state.get(\"draft\"):\n        return \"writer\"\n    if not state.get(\"is_approved\") and state.get(\"review_count\", 0) < 3:\n        return \"critic\"\n    return \"finish\""
+    }
+  },
+  "headline_tags": ["agents", "multi-agent", "architecture"],
+  "status_board_ids": ["status-multi-agent-frameworks"],
+  "resources": ["res-multi-yt", "res-multi-docs", "res-multi-repo"]
+}

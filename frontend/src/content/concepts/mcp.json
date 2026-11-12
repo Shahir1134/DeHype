@@ -1,0 +1,112 @@
+{
+  "id": "mcp",
+  "title_question": "How does AI plug into my apps?",
+  "also_called": "Model Context Protocol (MCP) and Tool Connections",
+  "one_liner": "MCP is a standard way for AI apps to connect to tools and data (calendar, files, databases) so each connection does not need custom work.",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "The AI client requests capabilities",
+      "text": "Your AI chat app connects to an MCP server and queries what actions or resources are currently available.",
+      "stage_state": { "highlight": "discovery", "description": "AI client sending capability inquiry to surrounding tool plugs." }
+    },
+    {
+      "step_number": 2,
+      "title": "An MCP server sits in front of each tool",
+      "text": "Instead of writing custom code for every calendar or database, a lightweight adapter translates tool actions into standardized messages.",
+      "stage_state": { "highlight": "adapter", "description": "Standardized adapter box translating proprietary tool formats into universal protocol." }
+    },
+    {
+      "step_number": 3,
+      "title": "You grant explicit permission",
+      "text": "Before the AI executes an action (such as modifying a calendar event or sending an email), it requests your approval.",
+      "stage_state": { "highlight": "permission", "description": "Security prompt requesting user confirmation before action dispatch." }
+    },
+    {
+      "step_number": 4,
+      "title": "Results return into the context window",
+      "text": "The tool executes the request safely and hands structured results back to the AI to complete your sentence.",
+      "stage_state": { "highlight": "result", "description": "Verified data flowing back through adapter into active conversation." }
+    }
+  ],
+  "analogy": {
+    "text": "Think of MCP like USB-C for AI applications. Prior to USB-C, every device required a proprietary charging cable or unique dongle. With a universal port, any compatible peripheral clicks in smoothly.",
+    "breaks": "A universal plug design does not make the connected peripheral inherently safe or well-engineered. Careful permission boundaries are still necessary, and data returned from an untrusted tool could contain misleading instructions."
+  },
+  "myth": {
+    "claim": "Connecting tools via MCP gives the AI uncontrollable access to delete your files.",
+    "reality": "MCP architecture requires human-in-the-loop authorization for sensitive actions. You decide which folders or tools are exposed, and can limit connections to read-only access."
+  },
+  "demo": {
+    "type": "PlugBoard",
+    "config": {
+      "has_permissions_sim": true
+    }
+  },
+  "seen_in": [
+    "Claude Desktop using local tools to inspect files and run terminal commands",
+    "Cursor and Antigravity IDEs connecting to git repositories and issue trackers",
+    "Enterprise AI assistants querying Postgres databases and internal ticketing systems"
+  ],
+  "persona_examples": {
+    "student": "Connecting your notes folder to your study assistant while keeping your personal diary folder disconnected.",
+    "teacher": "Connecting lesson plan archives while keeping the student grade book in an unlinked, private directory.",
+    "entrepreneur": "Connecting sales CRM data and calendar availability to automate appointment scheduling with client confirmation.",
+    "engineer_office": "Granting an AI assistant read-only access to GitHub pull requests and CI/CD logs to analyze failing test runs."
+  },
+  "quiz": [
+    {
+      "question": "What fundamental problem does the Model Context Protocol (MCP) resolve?",
+      "options": [
+        "It eliminates the need for computer monitors",
+        "It replaces hundreds of fragmented, custom tool connectors with one open, universal protocol",
+        "It makes computer microchips run ten times cooler",
+        "It translates all spoken languages into Latin"
+      ],
+      "correct_index": 1,
+      "explanation": "MCP standardizes how language models communicate with external tools, APIs, and file systems."
+    },
+    {
+      "question": "Which security habit is recommended when connecting tools to an AI assistant?",
+      "options": [
+        "Grant full administrator write permissions to all drives on your computer",
+        "Connect only the specific folders and services required for the immediate task",
+        "Share your private passwords with other online chat users",
+        "Disable all confirmation prompts to make tools run faster"
+      ],
+      "correct_index": 1,
+      "explanation": "The principle of least privilege ensures the AI only accesses the minimal necessary documents and actions."
+    },
+    {
+      "question": "Does having a standard connection protocol mean every connected third-party tool is safe?",
+      "options": [
+        "Yes, any tool using a standard protocol is proven 100 percent secure",
+        "No, a standard protocol only defines how messages travel; external tools can still contain bugs or return untrusted content",
+        "Yes, because protocols replace operating system security",
+        "No, protocols only work on mobile phones"
+      ],
+      "correct_index": 1,
+      "explanation": "Protocols standardize communication structure, but application security depends on data validation and user permissions."
+    }
+  ],
+  "explain_back": {
+    "prompt": "Complete this sentence to prove you understand:",
+    "template": "MCP lets an AI connect to external tools using a standard adapter without requiring custom software engineering for every single application."
+  },
+  "technical": {
+    "bullets": [
+      "MCP uses a client-server architecture with three primitives: Resources (read-only data), Tools (executable actions), and Prompts (predefined templates).",
+      "Supported transports include local JSON-RPC over standard input/output (stdio) and remote HTTP with Server-Sent Events (SSE).",
+      "Security boundaries mitigate indirect prompt injection vulnerabilities where untrusted tool outputs attempt to override system instructions.",
+      "Capability negotiation occurs on initial handshake, allowing clients to advertise supported features and enforce OAuth authorization."
+    ],
+    "code_panel": {
+      "title": "Minimal MCP Tool Definition",
+      "language": "python",
+      "code": "# Minimal MCP tool definition (Python SDK)\nfrom mcp.server.fastmcp import FastMCP\n\nmcp = FastMCP(\"WeatherService\")\n\n@mcp.tool()\ndef get_forecast(city: str) -> str:\n    \"\"\"Retrieve current weather forecast for a specified city.\"\"\"\n    # Safe sandboxed tool execution\n    data = fetch_weather_api(city)\n    return f\"Weather in {city}: {data['summary']}, {data['temp']}°C\"\n\nif __name__ == \"__main__\":\n    mcp.run(transport=\"stdio\")"
+    }
+  },
+  "headline_tags": ["mcp", "agents", "integrations"],
+  "status_board_ids": ["status-mcp-spec", "status-mcp-transport"],
+  "resources": ["res-mcp-yt", "res-mcp-docs", "res-mcp-repo"]
+}

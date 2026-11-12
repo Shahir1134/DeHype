@@ -1,0 +1,178 @@
+[
+  {
+    "id": "student",
+    "name": "Student",
+    "accent_color": "#059669",
+    "accent_light": "#ecfdf5",
+    "hero_headline": "Master your courses faster with honest, free AI",
+    "hero_subheading": "Study smarter, understand tough concepts, and protect your academic integrity without paid subscriptions.",
+    "section_order": [
+      "hero",
+      "today_stories",
+      "try_this_week",
+      "timeline",
+      "skip_today",
+      "ask_question"
+    ],
+    "section_titles": {
+      "today": "Today for Students",
+      "try_week": "Try This Week (Free Tools Only)",
+      "timeline": "How 2026 Changed Student Life",
+      "skip": "Skip These Today (Hype & Irrelevant Demos)",
+      "ask": "Ask a Study Question (No Dumb Questions Here)"
+    },
+    "analogy_anchors": [
+      "exam scratch paper",
+      "study group notes",
+      "textbook glossary",
+      "calculator",
+      "library desk",
+      "homework outline"
+    ],
+    "topic_tags": {
+      "education": 1.8,
+      "study_tools": 1.8,
+      "reasoning": 1.4,
+      "open_weights": 1.3,
+      "coding": 1.1,
+      "enterprise": 0.1,
+      "funding": 0.1
+    },
+    "banned_topics": [
+      "enterprise procurement",
+      "cloud infrastructure pricing",
+      "hedge fund trading"
+    ],
+    "action_style": "Study faster, academic integrity, free tools only, career skills.",
+    "tone_notes": "Encouraging, study-buddy tone, honest about academic boundaries. Never suggest submitting unedited AI text as original homework."
+  },
+  {
+    "id": "teacher",
+    "name": "Teacher",
+    "accent_color": "#4f46e5",
+    "accent_light": "#eef2ff",
+    "hero_headline": "Lesson planning and concept explainers that save you hours",
+    "hero_subheading": "Create differentiated examples, save grading time, and stay ahead of school AI policies with privacy-first tools.",
+    "section_order": [
+      "hero",
+      "today_stories",
+      "try_this_week",
+      "timeline",
+      "skip_today",
+      "ask_question"
+    ],
+    "section_titles": {
+      "today": "Today for Teachers & Educators",
+      "try_week": "Lesson Spark for This Week",
+      "timeline": "How 2026 Reshaped Education",
+      "skip": "Skip These Today (Demos Without Student Safety)",
+      "ask": "Ask About Classroom AI"
+    },
+    "analogy_anchors": [
+      "lesson plan binder",
+      "whiteboard diagram",
+      "grading rubric",
+      "pop quiz",
+      "differentiated reading levels"
+    ],
+    "topic_tags": {
+      "education": 1.9,
+      "teaching": 1.9,
+      "policy": 1.5,
+      "reasoning": 1.4,
+      "multimodal": 1.2,
+      "enterprise": 0.2
+    },
+    "banned_topics": [
+      "student data scraping",
+      "algorithmic trading"
+    ],
+    "action_style": "Better analogies, lesson planning, quizzes, differentiated levels, privacy safeguards.",
+    "tone_notes": "Respectful of teacher time, pedagogy-first. NEVER advise pasting student personal data or grades into public tools."
+  },
+  {
+    "id": "entrepreneur",
+    "name": "Entrepreneur",
+    "accent_color": "#d97706",
+    "accent_light": "#fffbeb",
+    "hero_headline": "Real market gaps and unit economics, zero Silicon Valley fluff",
+    "hero_subheading": "Discover what got cheaper, what is newly possible, and where customer willingness to pay actually exists.",
+    "section_order": [
+      "hero",
+      "today_stories",
+      "try_this_week",
+      "timeline",
+      "skip_today",
+      "ask_question"
+    ],
+    "section_titles": {
+      "today": "Today for Founders & Builders",
+      "try_week": "Run a 30-Minute Experiment",
+      "timeline": "How 2026 Shifted Market Opportunities",
+      "skip": "Skip These Today (Empty Funding PR & Waitlists)",
+      "ask": "Ask a Business Reality Question"
+    },
+    "analogy_anchors": [
+      "coffee shop margins",
+      "wholesale supplier pricing",
+      "storefront lease",
+      "electric utility bill",
+      "flat-rate subscription"
+    ],
+    "topic_tags": {
+      "business": 1.8,
+      "pricing": 1.7,
+      "market_gap": 1.6,
+      "open_weights": 1.5,
+      "automation": 1.4,
+      "academic_theory": 0.2
+    },
+    "banned_topics": [
+      "pure academic math theory without code"
+    ],
+    "action_style": "Unfair advantages, pricing wedges, underserved niches, first experiment.",
+    "tone_notes": "Pragmatic, candid about customer willingness to pay. No invented prices or speculative revenue figures."
+  },
+  {
+    "id": "engineer_office",
+    "name": "Engineer / Office Worker",
+    "accent_color": "#0284c7",
+    "accent_light": "#f0f9ff",
+    "hero_headline": "Automate repetitive docs, code, and sheets without breaking production",
+    "hero_subheading": "Faster coding, local model deployment, document triage, and battle-tested spreadsheet automations.",
+    "section_order": [
+      "hero",
+      "today_stories",
+      "try_this_week",
+      "timeline",
+      "skip_today",
+      "ask_question"
+    ],
+    "section_titles": {
+      "today": "Today for Modern Office & Dev Workflows",
+      "try_week": "Automate One Annoying Task This Week",
+      "timeline": "How 2026 Shifted Workplace Productivity",
+      "skip": "Skip These Today (Minor Version Bumps & Hype)",
+      "ask": "Ask About Workflow Automation"
+    },
+    "analogy_anchors": [
+      "excel vlookup",
+      "git branch",
+      "cron job",
+      "printer queue",
+      "company email thread",
+      "terminal script"
+    ],
+    "topic_tags": {
+      "coding": 1.8,
+      "productivity": 1.6,
+      "developer_tools": 1.6,
+      "local_models": 1.5,
+      "spreadsheets": 1.4,
+      "hardware": 1.3
+    },
+    "banned_topics": [],
+    "action_style": "Copy-paste code/commands, setup guides, tool comparisons, failure modes.",
+    "tone_notes": "Direct, practical, respectful of engineer time. Includes technical depth toggle (Simple / Detailed)."
+  }
+]

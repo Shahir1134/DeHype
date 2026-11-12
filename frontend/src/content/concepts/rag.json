@@ -1,0 +1,113 @@
+{
+  "id": "rag",
+  "title_question": "Why doesn't AI know about my files?",
+  "also_called": "Retrieval-Augmented Generation (RAG)",
+  "one_liner": "RAG lets an AI look up the right pages from your own documents before answering, so it answers from them instead of guessing.",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "Documents are chopped into chunks",
+      "text": "Your PDFs and notes are split into short sections (typically a couple of paragraphs each) and converted into numerical meaning fingerprints.",
+      "stage_state": { "highlight": "chunking", "description": "Large multi-page document divides into organized color-coded text cards." }
+    },
+    {
+      "step_number": 2,
+      "title": "You ask a question",
+      "text": "When you type a query, the system transforms your question into the same mathematical representation to compare topics.",
+      "stage_state": { "highlight": "query", "description": "User query card aligns with similarity coordinate space." }
+    },
+    {
+      "step_number": 3,
+      "title": "The most relevant chunks are retrieved",
+      "text": "A search engine pulls the three to five paragraphs whose meaning most closely matches your question, skipping irrelevant chapters.",
+      "stage_state": { "highlight": "retrieval", "description": "Target paragraph cards fly forward with glowing relevance scores." }
+    },
+    {
+      "step_number": 4,
+      "title": "AI answers using those passages with citations",
+      "text": "The AI receives the retrieved passages alongside your prompt and drafts an answer referencing those exact excerpts.",
+      "stage_state": { "highlight": "answer", "description": "Answer appears with clickable citation badges pointing to source page numbers." }
+    }
+  ],
+  "analogy": {
+    "text": "Think of it like an open-book exam with a helpful research librarian. Instead of forcing a student to memorize an entire library, the librarian pulls the exact three relevant pages and sets them on the desk before the student writes an answer.",
+    "breaks": "The librarian can occasionally select the wrong page, the AI reader can misinterpret dense phrasing, and the resulting response remains only as accurate as the source documents you supplied."
+  },
+  "myth": {
+    "claim": "RAG eliminates all false statements and mistakes from an AI response.",
+    "reality": "RAG significantly grounds responses and reduces imaginative errors, but a model can still misread excerpts or answer poorly if key context is missing."
+  },
+  "demo": {
+    "type": "PipelineStepper",
+    "config": {
+      "has_with_without": true,
+      "has_break_it": true
+    }
+  },
+  "seen_in": [
+    "Google NotebookLM answering questions from your uploaded PDFs",
+    "Company internal search assistants in Notion, Slack, or Google Drive",
+    "Customer support chatbots answering questions using official help center articles"
+  ],
+  "persona_examples": {
+    "student": "Asking for a quiz strictly based on chapter 4 of your biology textbook, citing specific page numbers.",
+    "teacher": "Drafting parent communication letters based directly on your school district's published handbook rules.",
+    "entrepreneur": "Answering client product questions directly from your current price sheet and service agreements.",
+    "engineer_office": "Querying engineering specifications across hundreds of archived internal architecture proposals."
+  },
+  "quiz": [
+    {
+      "question": "What is the primary role of the retrieval step in a RAG pipeline?",
+      "options": [
+        "To retrain the neural network on the internet",
+        "To locate and extract the most relevant passages from your private files before answering",
+        "To encrypt the user's hard drive",
+        "To format the output as a PDF file"
+      ],
+      "correct_index": 1,
+      "explanation": "Retrieval finds the pertinent paragraphs from your documents and hands them to the language model as context."
+    },
+    {
+      "question": "If a RAG assistant provides an inaccurate answer, what should you examine first?",
+      "options": [
+        "Check whether the correct document chunk was retrieved and whether your source document contained up-to-date facts",
+        "Restart your computer and replace your keyboard",
+        "Assume the model has developed consciousness",
+        "Delete all your documents immediately"
+      ],
+      "correct_index": 0,
+      "explanation": "Most RAG failures stem from missing the relevant passage during retrieval or outdated facts in the uploaded files."
+    },
+    {
+      "question": "Does applying RAG guarantee that a model makes zero factual mistakes?",
+      "options": [
+        "Yes, RAG guarantees 100 percent flawless accuracy in all situations",
+        "No, while it grounds answers in real excerpts, models can still misinterpret passages or struggle with confusing phrasing",
+        "Yes, because retrieval disables the neural network",
+        "No, because RAG only works on fiction novels"
+      ],
+      "correct_index": 1,
+      "explanation": "RAG anchors responses to source text, but careful review is still prudent because models can occasionally misread details."
+    }
+  ],
+  "explain_back": {
+    "prompt": "Complete this sentence to prove you understand:",
+    "template": "RAG works like a research assistant who pulls the right pages first, then the AI writes an answer based on those excerpts with source links."
+  },
+  "technical": {
+    "bullets": [
+      "Chunking strategies (fixed-size, semantic, or recursive character splitting with overlap) balance granularity against context continuity.",
+      "Embedding models encode chunks into vector spaces where cosine similarity measures conceptual proximity.",
+      "Hybrid search combines dense vector retrieval with sparse keyword matching (BM25) to capture both semantic intent and exact acronyms.",
+      "Rerankers (cross-encoders) rescore top candidates, and assembled prompts include citations with strict grounding instructions."
+    ],
+    "code_panel": {
+      "title": "Minimal RAG Query Pipeline",
+      "language": "python",
+      "code": "# 15-line production RAG query flow (pseudocode)\ndef answer_with_rag(query: str, vector_store, llm):\n    # 1. Embed query and retrieve top passages\n    query_vec = embed_model.get_vector(query)\n    candidate_chunks = vector_store.similarity_search(query_vec, top_k=5)\n    \n    # 2. Re-rank passages for maximum precision\n    reranked = reranker.rank(query=query, passages=candidate_chunks)[:3]\n    \n    # 3. Assemble prompt with grounded context\n    context_block = \"\\n\\n\".join([f\"[Source {c.doc_id}]: {c.text}\" for c in reranked])\n    prompt = f\"Context:\\n{context_block}\\n\\nQuestion: {query}\\nAnswer based only on context:\"\n    \n    # 4. Generate grounded completion\n    return llm.generate(prompt)"
+    }
+  },
+  "headline_tags": ["rag", "retrieval", "grounding"],
+  "status_board_ids": [],
+  "resources": ["res-rag-yt", "res-rag-docs", "res-rag-repo"]
+}

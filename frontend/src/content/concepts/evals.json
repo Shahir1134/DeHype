@@ -1,0 +1,113 @@
+{
+  "id": "evals",
+  "title_question": "Can I trust the scoreboard?",
+  "also_called": "LLM Evaluations, Benchmarks, and Grounded Testing",
+  "one_liner": "A benchmark is a fixed test with a score; it helps only if you know who ran it, what it measured, and whether it resembles your task.",
+  "steps": [
+    {
+      "step_number": 1,
+      "title": "A set of test questions is chosen",
+      "text": "Evaluators curate a standardized suite of prompts (such as math puzzles, coding challenges, or reading comprehension passages).",
+      "stage_state": { "highlight": "test_set", "description": "Folder of exam questions with fixed target answers." }
+    },
+    {
+      "step_number": 2,
+      "title": "The model runs across the test set",
+      "text": "The language model generates answers for every question under specific prompt templates and temperature parameters.",
+      "stage_state": { "highlight": "inference", "description": "Automated runner executing queries against candidate models." }
+    },
+    {
+      "step_number": 3,
+      "title": "Answers are graded against a standard",
+      "text": "Responses are scored automatically (using code execution, regex matching, or another model acting as a judge).",
+      "stage_state": { "highlight": "scoring", "description": "Checkmarks and point tallies compiling into a summary percentage." }
+    },
+    {
+      "step_number": 4,
+      "title": "Ask the four critical evaluation questions",
+      "text": "Before trusting a high score, check: Who conducted the test? Compared to what baseline? Under what prompt conditions? Does this test mirror what you actually need to do?",
+      "stage_state": { "highlight": "critique", "description": "Four-point checklist examining methodology and relevance." }
+    }
+  ],
+  "analogy": {
+    "text": "Think of it like a standardized high school driving test. Scoring high on a closed parking-lot obstacle course shows the driver learned vehicle controls, but it does not tell you how they react in a sudden blizzard on an unfamiliar mountain highway.",
+    "breaks": "There are hundreds of competing tests with conflicting rules, and test questions can accidentally leak into public web archives where models memorize them during pretraining (benchmark contamination)."
+  },
+  "myth": {
+    "claim": "A model that scores 95 percent on a famous benchmark will work well for my company's specific job.",
+    "reality": "Benchmark tasks rarely reflect your exact vocabulary, document formats, or edge cases. A model with a lower generic score can outperform a hyped model on your tailored domain tasks."
+  },
+  "demo": {
+    "type": "BlindTaste",
+    "config": {
+      "has_red_flag_spotter": true,
+      "has_mini_eval": true
+    }
+  },
+  "seen_in": [
+    "Tech company launch keynotes claiming new world records",
+    "Public leaderboards (such as LMSYS Chatbot Arena or Hugging Face Open LLM Leaderboard)",
+    "Product marketing comparisons claiming superior reasoning capability"
+  ],
+  "persona_examples": {
+    "student": "Choosing which free AI tool helps you study by testing each on five sample problems from your actual syllabus.",
+    "teacher": "Evaluating an automated essay feedback tool on five previously graded papers to check if its suggestions match your standards.",
+    "entrepreneur": "Testing customer response quality across 20 common customer inquiries before purchasing a team subscription.",
+    "engineer_office": "Building a regression test suite that runs every week to ensure prompt updates do not degrade system reliability."
+  },
+  "quiz": [
+    {
+      "question": "When a headline claims a new model achieved 98 percent on a coding test, what should you ask first?",
+      "options": [
+        "Which font style did the company use in the blog post?",
+        "What was tested, under what conditions, and does that test reflect the programming tasks I do?",
+        "How many stock options did the engineers receive?",
+        "Can the model replace all human programmers immediately?"
+      ],
+      "correct_index": 1,
+      "explanation": "Understanding what was measured and whether test questions resemble your practical workflow is essential before trusting any metric."
+    },
+    {
+      "question": "What is benchmark contamination?",
+      "options": [
+        "A computer virus affecting data center hardware",
+        "When the exact questions from a test suite are present in the model's training data, allowing it to memorize answers rather than reason",
+        "Spilling water on the computer servers",
+        "Using a test with too many difficult math problems"
+      ],
+      "correct_index": 1,
+      "explanation": "Contamination occurs when test questions leak into the pretraining text corpus, artificially inflating performance scores."
+    },
+    {
+      "question": "What does the metric pass@1 mean on a coding benchmark?",
+      "options": [
+        "The model must attempt the problem 100 times before succeeding",
+        "The percentage of problems the model solves correctly on its very first generated attempt",
+        "Only one person in the world passed the exam",
+        "The model achieved a grade of 1 out of 10"
+      ],
+      "correct_index": 1,
+      "explanation": "pass@1 measures first-try accuracy without giving the model multiple opportunities to retry or debug."
+    }
+  ],
+  "explain_back": {
+    "prompt": "Complete this sentence to prove you understand:",
+    "template": "Before I believe an AI benchmark score, I check who ran the test, what baseline was used, and whether the questions match my actual task."
+  },
+  "technical": {
+    "bullets": [
+      "Rigorous evaluation requires held-out private test splits with canary strings to prevent training data contamination.",
+      "Human preference rankings (such as Bradley-Terry paired comparisons and Elo ratings) capture nuanced conversational satisfaction.",
+      "LLM-as-a-judge approaches require calibration against human raters to mitigate position bias, verbosity bias, and self-enhancement bias.",
+      "Task-specific evaluation harnesses (pass@k, exact match, semantic faithfulness) provide quantifiable regression protection during prompt engineering."
+    ],
+    "code_panel": {
+      "title": "Minimal Prompt Evaluation Runner",
+      "language": "python",
+      "code": "# Minimal automated evaluation harness (pseudocode)\ntest_cases = [\n    {\"input\": \"Explain RAG in one sentence\", \"must_contain\": [\"retrieve\", \"document\"]},\n    {\"input\": \"What is MCP?\", \"must_contain\": [\"protocol\", \"tool\"]}\n]\n\nscores = []\nfor item in test_cases:\n    response = llm.generate(item[\"input\"])\n    passed = all(k.lower() in response.lower() for k in item[\"must_contain\"])\n    scores.append(1.0 if passed else 0.0)\n\naccuracy = sum(scores) / len(scores)\nprint(f\"Pass rate: {accuracy * 100:.1f}%\")"
+    }
+  },
+  "headline_tags": ["benchmark", "eval", "record-score"],
+  "status_board_ids": [],
+  "resources": ["res-eval-yt", "res-eval-docs", "res-eval-repo"]
+}
