@@ -3,11 +3,9 @@ import { motion } from 'framer-motion'
 import { signInWithGoogle } from '../lib/supabase'
 import { Sparkles, ShieldCheck, Cpu, Users, ArrowRight, CheckCircle2 } from 'lucide-react'
 
-interface LoginScreenProps {
-  onContinueAsGuest: () => void
-}
+interface LoginScreenProps {}
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onContinueAsGuest }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = () => {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
@@ -18,7 +16,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onContinueAsGuest }) =
       await signInWithGoogle()
     } catch (err: any) {
       console.error(err)
-      setErrorMsg(err.message || 'Failed to initialize Google authentication. Try guest mode or check Supabase settings.')
+      setErrorMsg(err.message || 'Failed to initialize Google authentication. Please check your connection or Google settings.')
       setLoading(false)
     }
   }
@@ -46,13 +44,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onContinueAsGuest }) =
             </span>
           </div>
         </div>
-
-        <button
-          onClick={onContinueAsGuest}
-          className="text-xs font-semibold text-[var(--muted)] hover:text-[var(--accent)] transition-colors px-3 py-1.5 rounded-lg border border-[var(--line)] hover:border-[var(--accent)]"
-        >
-          Explore as Guest →
-        </button>
       </header>
 
       {/* Main Hero & Auth Box */}
@@ -144,23 +135,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onContinueAsGuest }) =
                   />
                 </svg>
                 <span>{loading ? 'Connecting to Google...' : 'Continue with Google'}</span>
-              </button>
-
-              <div className="relative flex items-center justify-center py-2">
-                <div className="border-t border-[var(--line)] w-full" />
-                <span className="bg-[var(--surface)] px-3 text-[10px] font-mono uppercase text-[var(--muted)] shrink-0">
-                  Or test without login
-                </span>
-                <div className="border-t border-[var(--line)] w-full" />
-              </div>
-
-              {/* Guest Explore Button */}
-              <button
-                onClick={onContinueAsGuest}
-                className="w-full py-3 px-4 rounded-2xl bg-[var(--surface)] hover:bg-[var(--surface-hover)] border border-[var(--line)] text-xs font-semibold text-[var(--muted)] hover:text-[var(--ink)] transition-colors flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Continue as Guest (Preview)</span>
-                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 

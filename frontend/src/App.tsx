@@ -18,9 +18,9 @@ import { LearnScreen } from './screens/LearnScreen'
 import { AskScreen } from './screens/AskScreen'
 
 export const App: React.FC = () => {
-  const { hasOnboarded, activeTab, setActiveTab, setUser, user, isGuest, setIsGuest } = useAppStore()
+  const { hasOnboarded, activeTab, setActiveTab, setUser, user } = useAppStore()
   const [authChecking, setAuthChecking] = useState(true)
-  // Splash shown once per session after a successful login/guest entry
+  // Splash shown once per session after a successful login entry
   const [showSplash, setShowSplash] = useState(false)
   // Track whether we were previously logged-out so we know when a fresh login occurred
   const [wasLoggedOut, setWasLoggedOut] = useState(true)
@@ -44,7 +44,7 @@ export const App: React.FC = () => {
 
   // Show splash once whenever the user transitions from logged-out → logged-in
   useEffect(() => {
-    const isNowAuthenticated = !!(user || isGuest)
+    const isNowAuthenticated = !!user
     if (wasLoggedOut && isNowAuthenticated && !authChecking) {
       setShowSplash(true)
       setWasLoggedOut(false)
@@ -52,7 +52,7 @@ export const App: React.FC = () => {
     if (!isNowAuthenticated) {
       setWasLoggedOut(true)
     }
-  }, [user, isGuest, authChecking, wasLoggedOut])
+  }, [user, authChecking, wasLoggedOut])
 
   // Hash route synchronization
   useEffect(() => {
@@ -91,11 +91,11 @@ export const App: React.FC = () => {
     )
   }
 
-  // 2. Gateway Login Screen: shown when user is not logged in and not in guest mode
-  if (!user && !isGuest) {
+  // 2. Gateway Login Screen: shown whenever user is not logged in
+  if (!user) {
     return (
       <LazyMotion features={domAnimation} strict>
-        <LoginScreen onContinueAsGuest={() => setIsGuest(true)} />
+        <LoginScreen />
       </LazyMotion>
     )
   }

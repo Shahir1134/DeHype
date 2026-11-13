@@ -36,8 +36,7 @@ export const Navbar: React.FC = () => {
     reduceMotion,
     toggleReduceMotion,
     savedStoryIds,
-    user,
-    setIsGuest
+    user
   } = useAppStore()
 
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -232,7 +231,6 @@ export const Navbar: React.FC = () => {
                     <button
                       onClick={async () => {
                         setShowUserMenu(false)
-                        setIsGuest(false)
                         await signOut()
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-rose-500 hover:bg-rose-500/10 transition-colors font-medium cursor-pointer"
