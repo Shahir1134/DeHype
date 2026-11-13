@@ -11,7 +11,7 @@ Endpoints:
 - POST /link-check
 - GET /health
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import json
 import math
