@@ -53,6 +53,89 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+# ---------------------------------------------------------------------------
+# Automated 5-Hour Newsroom Cycle & Background Scheduler
+# ---------------------------------------------------------------------------
+import threading
+
+NEWSROOM_STATUS = {
+    "last_run": None,
+    "last_status": "Idle — scheduler active",
+    "is_running": False,
+    "run_count": 0
+}
+
+def execute_newsroom_cycle():
+    """Executes the newsroom pipeline in a background thread and busts stale cache."""
+    if NEWSROOM_STATUS["is_running"]:
+        return {"status": "Already in progress", "started_at": NEWSROOM_STATUS["last_run"]}
+
+    NEWSROOM_STATUS["is_running"] = True
+    NEWSROOM_STATUS["last_run"] = datetime.now(timezone.utc).isoformat()
+    try:
+        from newsroom.pipeline import run_pipeline
+        stats = run_pipeline(live=True)
+        # Clear catchup cache so fresh stories appear immediately
+        try:
+            with sqlite3.connect("platform_v2.db") as conn:
+                conn.execute("DELETE FROM catchup_cache")
+                conn.commit()
+        except Exception as ce:
+            print(f"[Newsroom] Cache clear warning: {ce}")
+        NEWSROOM_STATUS["last_status"] = f"Success: {stats}"
+        NEWSROOM_STATUS["run_count"] += 1
+    except Exception as exc:
+        NEWSROOM_STATUS["last_status"] = f"Error: {exc}"
+    finally:
+        NEWSROOM_STATUS["is_running"] = False
+
+    return NEWSROOM_STATUS
+
+@app.on_event("startup")
+def start_5h_scheduler():
+    """Initializes in-app APScheduler to run the news cycle every 5 hours."""
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from apscheduler.triggers.interval import IntervalTrigger
+
+        scheduler = BackgroundScheduler(timezone="UTC")
+        scheduler.add_job(
+            execute_newsroom_cycle,
+            trigger=IntervalTrigger(hours=5),
+            id="api_newsroom_5h",
+            name="Newsroom Ingest 5h",
+            replace_existing=True,
+            max_instances=1,
+            misfire_grace_time=300
+        )
+        scheduler.start()
+        print("[Scheduler] 5-hour background newsroom scheduler active.")
+    except Exception as e:
+        print(f"[Scheduler] Warning starting in-app scheduler: {e}")
+
+@app.get("/api/newsroom/status")
+def get_newsroom_status():
+    """Returns current newsroom schedule status, last run time, and run count."""
+    return NEWSROOM_STATUS
+
+@app.get("/api/newsroom/refresh")
+@app.post("/api/newsroom/refresh")
+def trigger_newsroom_refresh():
+    """Triggers an immediate newsroom ingest cycle in the background."""
+    if NEWSROOM_STATUS["is_running"]:
+        return {
+            "status": "already_running",
+            "message": "A newsroom update cycle is currently executing.",
+            "started_at": NEWSROOM_STATUS["last_run"]
+        }
+    t = threading.Thread(target=execute_newsroom_cycle, daemon=True)
+    t.start()
+    return {
+        "status": "triggered",
+        "message": "Newsroom 5-hour update cycle started in background.",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
 
 def get_db():
     db = SessionLocal()
