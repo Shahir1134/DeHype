@@ -205,6 +205,43 @@ export const Stage2Clean: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {/* Mobile Quick Action Route Bar */}
+        {selectedItem && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-3 p-2.5 rounded-2xl bg-slate-900/95 border border-cyan-500/50 flex flex-wrap items-center justify-between gap-2 shadow-lg shadow-cyan-500/10"
+          >
+            <div className="flex items-center gap-1.5 pl-1">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span className="text-xs font-bold text-cyan-300">Orb selected! Route to:</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => onDrop(selectedItem, 'keep')}
+                className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-[11px] font-bold shadow transition-transform flex items-center gap-1"
+              >
+                ✅ Retain
+              </button>
+              <button
+                type="button"
+                onClick={() => onDrop(selectedItem, 'fix')}
+                className="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-[11px] font-bold shadow transition-transform flex items-center gap-1"
+              >
+                🔧 Clean
+              </button>
+              <button
+                type="button"
+                onClick={() => onDrop(selectedItem, 'bin')}
+                className="px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-[11px] font-bold shadow transition-transform flex items-center gap-1"
+              >
+                🗑️ Bin
+              </button>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Target Filtration Bays (Keep / Fix / Bin) */}

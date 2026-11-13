@@ -63,27 +63,27 @@ export const AIFactoryGame: React.FC<AIFactoryGameProps> = ({ onExitFullscreen }
 
   const overallHealth = Math.round((dataQuality + generalization + alignment) / 3)
 
-  // Fullscreen container classes (always captures full screen when launched from start button)
-  const containerClasses = 'fixed inset-0 z-50 w-screen h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200'
+  // Fullscreen container classes (always captures full screen when launched from start button, supports dynamic viewport height on mobile)
+  const containerClasses = 'fixed inset-0 z-50 w-full h-[100dvh] max-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200'
 
   return (
     <div className={containerClasses}>
       {/* Top Header Bar */}
-      <header className="px-5 py-3 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 z-20 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-base">
+      <header className="px-3 sm:px-5 py-2 sm:py-3 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md flex items-center justify-between gap-2 z-20 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-sm sm:text-base shrink-0">
             🏭
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-bold text-white tracking-wide">
-                AI Factory Simulation
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="text-xs sm:text-base font-bold text-white tracking-wide truncate">
+                AI Factory
               </h1>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="hidden sm:inline-block text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 Interactive Arena
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
               {STAGE_TITLES[currentStage]}
             </p>
           </div>
@@ -95,28 +95,28 @@ export const AIFactoryGame: React.FC<AIFactoryGameProps> = ({ onExitFullscreen }
         </div>
 
         {/* Right Tools / Stats */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Quick Mode Toggle */}
           <button
             onClick={() => setQuickMode(!quickMode)}
-            className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5 ${
+            className={`px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-medium border transition-all flex items-center gap-1 sm:gap-1.5 ${
               quickMode
                 ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                 : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:text-slate-200'
             }`}
             title="Skips data collection and jumps straight to training"
           >
-            <span>⚡ Quick Mode</span>
+            <span>⚡ <span className="hidden xs:inline">Quick</span></span>
             {quickMode && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />}
           </button>
 
           {/* Reset button */}
           <button
             onClick={() => resetGame()}
-            className="px-2.5 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-slate-700 text-xs font-mono"
+            className="px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-slate-700 text-[11px] sm:text-xs font-mono"
             title="Reset Simulation"
           >
-            ↺ Reset
+            ↺
           </button>
 
           {/* Close / Exit Button */}
@@ -124,17 +124,17 @@ export const AIFactoryGame: React.FC<AIFactoryGameProps> = ({ onExitFullscreen }
             onClick={() => {
               if (onExitFullscreen) onExitFullscreen()
             }}
-            className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono flex items-center gap-1.5 cursor-pointer"
+            className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] sm:text-xs font-mono flex items-center gap-1 cursor-pointer"
             title="Exit game to Learn menu"
           >
-            <span>✕ Close Game</span>
+            <span>✕ <span className="hidden sm:inline">Close</span></span>
           </button>
 
           {/* Health Pill */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700">
-            <span className="text-[11px] text-slate-400">Health:</span>
+          <div className="flex items-center gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/80 border border-slate-700">
+            <span className="hidden sm:inline text-[11px] text-slate-400">Health:</span>
             <span
-              className={`text-xs font-bold ${
+              className={`text-[11px] sm:text-xs font-bold ${
                 overallHealth > 60 ? 'text-emerald-400' : overallHealth > 35 ? 'text-amber-400' : 'text-rose-400'
               }`}
             >
