@@ -92,6 +92,14 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
   }, [])
 
   const autoDropTargetRef = useRef<Record<string, string>>({})
+  const lastDropTimeRef = useRef<number>(0)
+
+  const safeOnDrop = useCallback((itemId: string, targetId: string) => {
+    const now = Date.now()
+    if (now - lastDropTimeRef.current < 280) return // Prevent duplicate drop events within 280ms
+    lastDropTimeRef.current = now
+    onDrop(itemId, targetId)
+  }, [onDrop])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     const ghost = ghostRef.current
@@ -115,26 +123,26 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
           const dropTargetEl = (el as HTMLElement).closest?.('[data-drop-target]') as HTMLElement | null
           const targetId = dropTargetEl?.dataset?.dropTarget
           if (targetId) {
-            onDrop(activeItemId, targetId)
+            safeOnDrop(activeItemId, targetId)
             dropSuccess = true
             break
           }
         }
 
-        // If drag didn't hit a valid target, keep it selected for tap-to-place fallback
+        // If drag didn't hit a valid target, check auto-drop or keep selected for tap-to-place fallback
         if (!dropSuccess) {
           const autoTarget = autoDropTargetRef.current[activeItemId]
           if (autoTarget) {
-            onDrop(activeItemId, autoTarget)
+            safeOnDrop(activeItemId, autoTarget)
           } else {
             setSelectedItem(prev => prev === activeItemId ? null : activeItemId)
           }
         }
       } else {
-        // Clean tap detected: if an auto-drop target is registered for this item, drop it immediately!
+        // Clean single tap detected: if an auto-drop target is registered for this item, drop exactly once!
         const autoTarget = autoDropTargetRef.current[activeItemId]
         if (autoTarget) {
-          onDrop(activeItemId, autoTarget)
+          safeOnDrop(activeItemId, autoTarget)
           setSelectedItem(null)
         } else {
           setSelectedItem(prev => prev === activeItemId ? null : activeItemId)
@@ -146,7 +154,7 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
     isDraggingRef.current = false
     dragStartPos.current = null
     currentItemIdRef.current = null
-  }, [onDrop])
+  }, [safeOnDrop])
 
   const handlePointerCancel = useCallback((e: React.PointerEvent) => {
     const ghost = ghostRef.current
@@ -163,10 +171,10 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
   const handleTargetTap = useCallback((targetId: string) => {
     const currentSelected = selectedItemRef.current
     if (currentSelected) {
-      onDrop(currentSelected, targetId)
+      safeOnDrop(currentSelected, targetId)
       setSelectedItem(null)
     }
-  }, [onDrop])
+  }, [safeOnDrop])
 
   const getDragProps = useCallback((itemId: string, label: string, autoDropTarget?: string) => {
     if (autoDropTarget) {
@@ -177,12 +185,6 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
       onPointerMove: handlePointerMove,
       onPointerUp: handlePointerUp,
       onPointerCancel: handlePointerCancel,
-      onClick: (e: React.MouseEvent) => {
-        // Fallback for click events on devices without pointer capture
-        if (autoDropTarget && !isDraggingRef.current) {
-          onDrop(itemId, autoDropTarget)
-        }
-      },
       style: {
         touchAction: 'none',
         userSelect: 'none' as const,
@@ -192,7 +194,7 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
       'data-drag-item': itemId,
       className: selectedItem === itemId ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-900 shadow-lg' : '',
     }
-  }, [handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, onDrop, selectedItem])
+  }, [handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, selectedItem])
 
   const getDropProps = useCallback((targetId: string) => ({
     'data-drop-target': targetId,
