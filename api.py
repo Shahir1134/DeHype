@@ -598,7 +598,7 @@ def get_feed(
             if ss.is_primary:
                 src_key = ss.display_label or ss.url
                 break
-        if source_counts.get(src_key, 0) >= 1:
+        if source_counts.get(src_key, 0) >= 2:
             continue
 
         # Check topic diversity

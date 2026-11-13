@@ -109,7 +109,7 @@ export const TodayScreen: React.FC = () => {
   const [expandedLayer3, setExpandedLayer3] = useState<Record<string, boolean>>({})
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'up' | 'down'>>({})
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null)
-  const [timeWindow, setTimeWindow] = useState<'24h' | '7d'>('24h')
+  const [timeWindow, setTimeWindow] = useState<'24h' | '7d'>('7d')
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left')
   const [showSkipSection, setShowSkipSection] = useState(false)
   const [skippedSectionDismissed, setSkippedSectionDismissed] = useState(false)
