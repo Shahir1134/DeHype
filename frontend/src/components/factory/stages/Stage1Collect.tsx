@@ -94,7 +94,7 @@ export const Stage1Collect: React.FC = () => {
         {SOURCES.map(src => (
           <motion.div
             key={src.type}
-            {...getDragProps(src.type, `${src.emoji} ${src.label}`)}
+            {...getDragProps(src.type, `${src.emoji} ${src.label}`, BELT_TARGET)}
             whileTap={{ scale: 0.88 }}
             animate={popSource === src.type
               ? { scale: [1, 0.8, 1.15, 1], rotate: [0, -5, 5, 0] }

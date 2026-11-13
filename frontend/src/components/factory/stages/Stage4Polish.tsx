@@ -153,7 +153,7 @@ export const Stage4Polish: React.FC = () => {
           return (
             <motion.div
               key={rule.id}
-              {...(applied ? {} : getDragProps(rule.id, `${rule.emoji} ${rule.label}`))}
+              {...(applied ? {} : getDragProps(rule.id, `${rule.emoji} ${rule.label}`, MODEL_RULES_ZONE))}
               animate={lastApplied === rule.id ? { scale: [1, 0.9, 1.05, 1] } : {}}
               whileHover={applied ? {} : { scale: 1.02 }}
               whileTap={applied ? {} : { scale: 0.96 }}

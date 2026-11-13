@@ -149,7 +149,7 @@ export const Stage5Exam: React.FC = () => {
           return (
             <motion.div
               key={q.id}
-              {...(answered ? {} : getDragProps(q.id, `${q.emoji} ${q.label}`))}
+              {...(answered ? {} : getDragProps(q.id, `${q.emoji} ${q.label}`, MODEL_EXAM_ZONE))}
               whileHover={!answered ? { scale: 1.02 } : {}}
               whileTap={!answered ? { scale: 0.95 } : {}}
               className={`

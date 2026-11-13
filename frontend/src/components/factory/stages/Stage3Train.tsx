@@ -151,7 +151,7 @@ export const Stage3Train: React.FC = () => {
           return (
             <motion.div
               key={batch.id}
-              {...getDragProps(batch.id, `${batch.emoji} ${batch.label}`)}
+              {...getDragProps(batch.id, `${batch.emoji} ${batch.label}`, MODEL_ZONE)}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.92 }}
               className={`

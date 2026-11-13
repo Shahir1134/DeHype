@@ -91,6 +91,8 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
     }
   }, [])
 
+  const autoDropTargetRef = useRef<Record<string, string>>({})
+
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
     const ghost = ghostRef.current
     if (ghost) ghost.style.display = 'none'
@@ -121,11 +123,22 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
 
         // If drag didn't hit a valid target, keep it selected for tap-to-place fallback
         if (!dropSuccess) {
-          setSelectedItem(prev => prev === activeItemId ? null : activeItemId)
+          const autoTarget = autoDropTargetRef.current[activeItemId]
+          if (autoTarget) {
+            onDrop(activeItemId, autoTarget)
+          } else {
+            setSelectedItem(prev => prev === activeItemId ? null : activeItemId)
+          }
         }
       } else {
-        // Clean tap detected: toggle selection
-        setSelectedItem(prev => prev === activeItemId ? null : activeItemId)
+        // Clean tap detected: if an auto-drop target is registered for this item, drop it immediately!
+        const autoTarget = autoDropTargetRef.current[activeItemId]
+        if (autoTarget) {
+          onDrop(activeItemId, autoTarget)
+          setSelectedItem(null)
+        } else {
+          setSelectedItem(prev => prev === activeItemId ? null : activeItemId)
+        }
       }
     }
 
@@ -155,20 +168,31 @@ export function useDragDrop({ onDrop }: UseDragDropOptions) {
     }
   }, [onDrop])
 
-  const getDragProps = useCallback((itemId: string, label: string) => ({
-    onPointerDown: (e: React.PointerEvent) => handlePointerDown(e, itemId, label),
-    onPointerMove: handlePointerMove,
-    onPointerUp: handlePointerUp,
-    onPointerCancel: handlePointerCancel,
-    style: {
-      touchAction: 'none',
-      userSelect: 'none' as const,
-      WebkitUserSelect: 'none' as const,
-      cursor: 'grab',
-    },
-    'data-drag-item': itemId,
-    className: selectedItem === itemId ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-900 shadow-lg' : '',
-  }), [handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, selectedItem])
+  const getDragProps = useCallback((itemId: string, label: string, autoDropTarget?: string) => {
+    if (autoDropTarget) {
+      autoDropTargetRef.current[itemId] = autoDropTarget
+    }
+    return {
+      onPointerDown: (e: React.PointerEvent) => handlePointerDown(e, itemId, label),
+      onPointerMove: handlePointerMove,
+      onPointerUp: handlePointerUp,
+      onPointerCancel: handlePointerCancel,
+      onClick: (e: React.MouseEvent) => {
+        // Fallback for click events on devices without pointer capture
+        if (autoDropTarget && !isDraggingRef.current) {
+          onDrop(itemId, autoDropTarget)
+        }
+      },
+      style: {
+        touchAction: 'none',
+        userSelect: 'none' as const,
+        WebkitUserSelect: 'none' as const,
+        cursor: 'grab',
+      },
+      'data-drag-item': itemId,
+      className: selectedItem === itemId ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-900 shadow-lg' : '',
+    }
+  }, [handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, onDrop, selectedItem])
 
   const getDropProps = useCallback((targetId: string) => ({
     'data-drop-target': targetId,

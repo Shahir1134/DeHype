@@ -137,30 +137,30 @@ export const LearnScreen: React.FC = () => {
   const totalConcepts = CONCEPTS_LIST.length
 
   return (
-    <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-8 pb-32 md:pb-20 space-y-12">
+    <div className="max-w-[1120px] mx-auto px-3 sm:px-6 py-4 sm:py-8 pb-32 md:pb-20 space-y-6 sm:space-y-10">
       
       {/* 1. Header Hero */}
-      <section className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-10 shadow-xs">
-        <div className="max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-soft)] text-[var(--accent-ink)] text-xs font-semibold uppercase tracking-wider">
-            <GraduationCap className="w-3.5 h-3.5 text-[var(--accent)]" />
+      <section className="bg-[var(--surface)] border border-[var(--line)] rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-xs">
+        <div className="max-w-2xl space-y-2.5 sm:space-y-3">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-[var(--accent-soft)] text-[var(--accent-ink)] text-[11px] sm:text-xs font-semibold uppercase tracking-wider">
+            <GraduationCap className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
             <span>Foundations & Architecture</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[var(--ink)] tracking-tight leading-[1.15]">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-[var(--ink)] tracking-tight leading-tight sm:leading-[1.15] break-words">
             How the AI you use actually works.
           </h1>
 
-          <p className="text-base sm:text-lg text-[var(--muted)] leading-relaxed">
+          <p className="text-sm sm:text-lg text-[var(--muted)] leading-relaxed">
             No hype, no mathematical barriers. Master the 6 core building blocks with visual dual-coding and interactive demos, tailored for a <strong>{persona.replace('_', ' ')}</strong>.
           </p>
         </div>
 
         {/* Learning progress bar */}
         {completedCount > 0 && (
-          <div className="mt-6 pt-6 border-t border-[var(--line)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-[var(--line)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded-xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              <span className="p-2 rounded-xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 shrink-0">
                 <Sparkles className="w-4 h-4" />
               </span>
               <div>
@@ -173,7 +173,7 @@ export const LearnScreen: React.FC = () => {
               </div>
             </div>
 
-            <div className="w-full sm:w-48 h-2.5 rounded-full bg-[var(--line)] overflow-hidden">
+            <div className="w-full sm:w-48 h-2 rounded-full bg-[var(--line)] overflow-hidden">
               <div 
                 className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
                 style={{ width: `${Math.round((completedCount / totalConcepts) * 100)}%` }} 
@@ -181,31 +181,31 @@ export const LearnScreen: React.FC = () => {
             </div>
           </div>
         )}
-        {/* Mode Selector Segmented Pill Bar */}
-        <div className="mt-8 pt-6 border-t border-[var(--line)] flex items-center justify-start">
-          <div className="inline-flex p-1.5 rounded-2xl bg-[var(--bg)] border border-[var(--line)] shadow-xs">
+        {/* Mode Selector Segmented Pill Bar (Mobile full-width grid) */}
+        <div className="mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-[var(--line)] flex items-center justify-start">
+          <div className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex p-1 rounded-2xl bg-[var(--bg)] border border-[var(--line)] shadow-xs gap-1">
             <button
               onClick={() => setLearnMode('playgrounds')}
-              className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] flex items-center gap-2 ${
+              className={`px-2.5 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] flex items-center justify-center gap-1.5 sm:gap-2 text-center ${
                 learnMode === 'playgrounds'
-                  ? 'bg-[var(--accent)] text-white shadow-xs'
+                  ? 'bg-[var(--accent)] text-white shadow-xs font-bold'
                   : 'text-[var(--muted)] hover:text-[var(--ink)]'
               }`}
             >
-              <Zap className="w-4 h-4" />
-              <span>🏭 AI Factory Simulation</span>
+              <Zap className="w-4 h-4 shrink-0" />
+              <span className="truncate">🏭 AI Factory</span>
             </button>
 
             <button
               onClick={() => setLearnMode('concepts')}
-              className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] flex items-center gap-2 ${
+              className={`px-2.5 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] flex items-center justify-center gap-1.5 sm:gap-2 text-center ${
                 learnMode === 'concepts'
-                  ? 'bg-[var(--accent)] text-white shadow-xs'
+                  ? 'bg-[var(--accent)] text-white shadow-xs font-bold'
                   : 'text-[var(--muted)] hover:text-[var(--ink)]'
               }`}
             >
-              <BookOpen className="w-4 h-4" />
-              <span>6 Guided Concepts</span>
+              <BookOpen className="w-4 h-4 shrink-0" />
+              <span className="truncate">6 Guided Concepts</span>
             </button>
           </div>
         </div>
@@ -278,7 +278,7 @@ export const LearnScreen: React.FC = () => {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {CONCEPTS_LIST.map((item, index) => {
             const concept = item.data
             const isCompleted = !!completedConcepts[concept.id]
@@ -295,36 +295,36 @@ export const LearnScreen: React.FC = () => {
               <div
                 key={concept.id}
                 onClick={() => setActiveConceptId(concept.id)}
-                className={`p-6 sm:p-7 rounded-3xl border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:-translate-y-0.5 ${
+                className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 group hover:-translate-y-0.5 active:scale-[0.99] ${
                   isCompleted
                     ? 'bg-[var(--surface)] border-emerald-400/80 shadow-xs ring-1 ring-emerald-500/20'
                     : 'bg-[var(--surface)] border-[var(--line)] shadow-xs hover:border-neutral-400 dark:hover:border-neutral-600 hover:shadow-md'
                 }`}
               >
                 {/* Left details */}
-                <div className="space-y-3 flex-1">
+                <div className="space-y-2 sm:space-y-3 flex-1 min-w-0">
                   
                   {/* Badges row */}
-                  <div className="flex items-center flex-wrap gap-2">
+                  <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
                     {/* Node index */}
-                    <span className="w-7 h-7 rounded-full bg-[var(--surface-hover)] text-xs font-bold text-[var(--ink)] flex items-center justify-center shrink-0">
+                    <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[var(--surface-hover)] text-[11px] sm:text-xs font-bold text-[var(--ink)] flex items-center justify-center shrink-0">
                       {index + 1}
                     </span>
 
                     {/* Persona Relevance Chip */}
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs ${importanceColor}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] sm:text-xs ${importanceColor}`}>
                       {importance}
                     </span>
 
                     {/* Time estimate */}
-                    <span className="flex items-center gap-1 text-[11px] text-[var(--muted)]">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>2-min core (~10 min with demo)</span>
+                    <span className="flex items-center gap-1 text-[10px] sm:text-[11px] text-[var(--muted)]">
+                      <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      <span>2-min core</span>
                     </span>
 
                     {/* Prerequisite suggestion */}
                     {item.prereq && (
-                      <span className="text-[11px] text-[var(--muted)] hidden sm:inline">
+                      <span className="text-[10px] sm:text-[11px] text-[var(--muted)] hidden md:inline">
                         • Read first: <span className="italic">{item.prereq}</span>
                       </span>
                     )}
@@ -332,29 +332,29 @@ export const LearnScreen: React.FC = () => {
 
                   {/* Title Question */}
                   <div>
-                    <h3 className="text-xl sm:text-2xl font-serif font-bold text-[var(--ink)] group-hover:text-[var(--accent)] transition-colors">
+                    <h3 className="text-base sm:text-xl md:text-2xl font-serif font-bold text-[var(--ink)] group-hover:text-[var(--accent)] transition-colors leading-snug">
                       {concept.title_question}
                     </h3>
-                    <p className="text-xs text-[var(--muted)] mt-0.5 font-medium">
+                    <p className="text-[11px] sm:text-xs text-[var(--muted)] mt-0.5 font-medium truncate">
                       Also called: {concept.also_called}
                     </p>
                   </div>
 
                   {/* One-liner summary */}
-                  <p className="text-xs sm:text-sm text-[var(--ink)] leading-relaxed max-w-2xl">
+                  <p className="text-xs sm:text-sm text-[var(--ink)] leading-relaxed max-w-2xl line-clamp-3 sm:line-clamp-none">
                     {concept.one_liner}
                   </p>
                 </div>
 
                 {/* Right Action / Progress Ring */}
-                <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0 w-full sm:w-auto justify-end pt-1 sm:pt-0 border-t sm:border-t-0 border-[var(--line)]">
                   {isCompleted ? (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-xs font-bold">
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-xs font-bold w-full sm:w-auto">
                       <CheckDraw size={16} strokeWidth={2.5} color="#059669" />
                       <span>Completed</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-white text-xs font-semibold group-hover:opacity-90 transition-opacity min-h-[44px] shadow-xs">
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:py-2.5 rounded-xl bg-[var(--accent)] text-white text-xs font-semibold group-hover:opacity-90 transition-opacity min-h-[40px] sm:min-h-[44px] shadow-xs w-full sm:w-auto">
                       <span>Start Lesson</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </div>

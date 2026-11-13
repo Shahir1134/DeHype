@@ -331,47 +331,49 @@ export const ConceptDetailView: React.FC<ConceptDetailViewProps> = ({
   }
 
   return (
-    <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-6 pb-36 space-y-12">
+    <div className="max-w-[1120px] mx-auto px-3 sm:px-6 py-4 sm:py-6 pb-36 space-y-6 sm:space-y-10">
       
       {/* Sticky Top Bar */}
-      <header className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-[var(--bg)]/90 backdrop-blur-md border-b border-[var(--line)] flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 -mx-3 sm:-mx-6 px-3 sm:px-6 py-2.5 sm:py-3 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)] flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <button
             onClick={onBack}
-            className="p-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
             aria-label="Back to all concepts"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
 
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] block">
+          <div className="min-w-0 flex-1">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] block truncate">
               Concept Walkthrough
             </span>
-            <span className="text-xs sm:text-sm font-serif font-bold text-[var(--ink)] line-clamp-1">
+            <span className="text-xs sm:text-sm font-serif font-bold text-[var(--ink)] truncate block">
               {concept.title_question}
             </span>
           </div>
         </div>
 
         {/* Controls: Depth chips, Listen, Text size */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Depth Chips */}
           <div className="flex p-0.5 rounded-xl bg-[var(--surface-hover)] border border-[var(--line)]">
             {(['brand_new', 'basics', 'technical'] as const).map(d => {
-              const label = d === 'brand_new' ? 'Brand new' : d === 'basics' ? 'Basics' : 'Technical'
+              const label = d === 'brand_new' ? 'New' : d === 'basics' ? 'Basics' : 'Tech'
+              const fullLabel = d === 'brand_new' ? 'Brand new' : d === 'basics' ? 'Basics' : 'Technical'
               const isSelected = activeDepthSetting === d
               return (
                 <button
                   key={d}
                   onClick={() => handleDepthChange(d)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all min-h-[36px] ${
+                  className={`px-2 sm:px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all min-h-[32px] sm:min-h-[36px] ${
                     isSelected
                       ? 'bg-[var(--accent)] text-white shadow-xs font-bold'
                       : 'text-[var(--muted)] hover:text-[var(--ink)]'
                   }`}
                 >
-                  {label}
+                  <span className="sm:hidden">{label}</span>
+                  <span className="hidden sm:inline">{fullLabel}</span>
                 </button>
               )
             })}
@@ -380,27 +382,27 @@ export const ConceptDetailView: React.FC<ConceptDetailViewProps> = ({
           {/* Listen Button */}
           <button
             onClick={handleListen}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent-ink)] text-xs font-semibold hover:opacity-90 transition-opacity min-h-[44px]"
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[var(--accent-soft)] text-[var(--accent-ink)] text-xs font-semibold hover:opacity-90 transition-opacity min-h-[36px] sm:min-h-[40px]"
             title="Listen to 1-minute audio explanation"
           >
-            <Volume2 className="w-4 h-4 text-[var(--accent)]" />
+            <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--accent)]" />
             <span className="hidden sm:inline">Listen</span>
           </button>
 
           {/* Text Size Cycle */}
           <button
             onClick={cycleTextSize}
-            className="p-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-1.5 sm:p-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)] transition-colors min-h-[36px] min-w-[36px] sm:min-h-[40px] sm:min-w-[40px] flex items-center justify-center"
             title="Cycle text size"
             aria-label="Change text size"
           >
-            <Type className="w-4 h-4" />
+            <Type className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
       </header>
 
       {/* 1. Hook Question (Title) + 30-Second Answer */}
-      <section className="bg-[var(--surface)] border border-[var(--line)] rounded-3xl p-6 sm:p-10 shadow-xs space-y-5">
+      <section className="bg-[var(--surface)] border border-[var(--line)] rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-xs space-y-4 sm:space-y-5">
         
         {/* Dynamic Depth Mode Banner — immediately confirms the selected learning style */}
         <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in transition-all ${
@@ -451,7 +453,7 @@ export const ConceptDetailView: React.FC<ConceptDetailViewProps> = ({
           <span>Core Idea</span>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-[var(--ink)] tracking-tight leading-[1.15]">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-bold text-[var(--ink)] tracking-tight leading-tight sm:leading-[1.15] break-words">
           {concept.title_question}
         </h1>
 
@@ -493,7 +495,7 @@ export const ConceptDetailView: React.FC<ConceptDetailViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           
           {/* Visual Stage (Sticky on desktop, top on mobile) */}
-          <div className="md:col-span-5 md:sticky md:top-24 p-6 rounded-3xl bg-[var(--surface)] border border-[var(--line)] shadow-xs space-y-4">
+          <div className="md:col-span-5 md:sticky md:top-24 p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-[var(--surface)] border border-[var(--line)] shadow-xs space-y-3 sm:space-y-4">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--accent-ink)] block">
               Stage Visualizer
             </span>
@@ -749,14 +751,14 @@ export const ConceptDetailView: React.FC<ConceptDetailViewProps> = ({
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
               Why it matters for your role:
             </span>
-            <div className="flex gap-1.5 p-1 bg-[var(--surface-hover)] rounded-xl border border-[var(--line)]">
+            <div className="grid grid-cols-2 sm:flex gap-1 sm:gap-1.5 p-1 bg-[var(--surface-hover)] rounded-xl border border-[var(--line)] w-full sm:w-auto">
               {(['student', 'teacher', 'entrepreneur', 'engineer_office'] as const).map(p => (
                 <button
                   key={p}
                   onClick={() => setActivePersonaTab(p)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold capitalize min-h-[32px] ${
+                  className={`px-2 py-1 rounded-lg text-[11px] sm:text-xs font-semibold capitalize min-h-[32px] text-center ${
                     activePersonaTab === p
-                      ? 'bg-[var(--accent)] text-white shadow-xs'
+                      ? 'bg-[var(--accent)] text-white shadow-xs font-bold'
                       : 'text-[var(--muted)] hover:text-[var(--ink)]'
                   }`}
                 >
