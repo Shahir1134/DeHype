@@ -32,13 +32,19 @@ from agents.fetcher import FetcherAgent
 from agents.signal_agent import SignalAgent
 from schemas import Story as StorySchema
 
+import os as _os
+_log_dir = "logs"
+_log_handlers = [logging.StreamHandler()]
+try:
+    _os.makedirs(_log_dir, exist_ok=True)
+    _log_handlers.append(logging.FileHandler(f"{_log_dir}/newsroom.log", encoding="utf-8"))
+except Exception:
+    pass  # On Render/read-only filesystems, just log to stdout
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("logs/newsroom.log", encoding="utf-8")
-    ]
+    handlers=_log_handlers
 )
 logger = logging.getLogger(__name__)
 
