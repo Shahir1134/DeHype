@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Query, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
@@ -134,8 +134,8 @@ def trigger_newsroom_refresh(format: Optional[str] = None):
             "message": "Newsroom update cycle executing." if was_running else "Newsroom update cycle started.",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
-    # Return minimal 2-byte plain text response to prevent cron-job.org "output too large" errors
-    return PlainTextResponse("OK", status_code=200)
+    # Return 204 No Content (0 bytes body) to permanently eliminate cron-job.org "output too large" errors
+    return Response(status_code=204, headers={"Cache-Control": "no-store"})
 
 
 def get_db():
