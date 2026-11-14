@@ -27,7 +27,7 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import httpx
@@ -120,21 +120,22 @@ def get_newsroom_status():
 
 @app.get("/api/newsroom/refresh")
 @app.post("/api/newsroom/refresh")
-def trigger_newsroom_refresh():
+@app.head("/api/newsroom/refresh")
+def trigger_newsroom_refresh(format: Optional[str] = None):
     """Triggers an immediate newsroom ingest cycle in the background."""
-    if NEWSROOM_STATUS["is_running"]:
-        return {
-            "status": "already_running",
-            "message": "A newsroom update cycle is currently executing.",
-            "started_at": NEWSROOM_STATUS["last_run"]
-        }
-    t = threading.Thread(target=execute_newsroom_cycle, daemon=True)
-    t.start()
-    return {
-        "status": "triggered",
-        "message": "Newsroom 5-hour update cycle started in background.",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    was_running = NEWSROOM_STATUS["is_running"]
+    if not was_running:
+        t = threading.Thread(target=execute_newsroom_cycle, daemon=True)
+        t.start()
+
+    if format == "json":
+        return JSONResponse({
+            "status": "already_running" if was_running else "triggered",
+            "message": "Newsroom update cycle executing." if was_running else "Newsroom update cycle started.",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+    # Return minimal 2-byte plain text response to prevent cron-job.org "output too large" errors
+    return PlainTextResponse("OK", status_code=200)
 
 
 def get_db():
