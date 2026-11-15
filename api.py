@@ -77,9 +77,10 @@ def execute_newsroom_cycle():
         stats = run_pipeline(live=True)
         # Clear catchup cache so fresh stories appear immediately
         try:
-            with sqlite3.connect("platform_v2.db") as conn:
-                conn.execute("DELETE FROM catchup_cache")
-                conn.commit()
+            db = SessionLocal()
+            db.execute(__import__('sqlalchemy').text("DELETE FROM catchup_cache"))
+            db.commit()
+            db.close()
         except Exception as ce:
             print(f"[Newsroom] Cache clear warning: {ce}")
         NEWSROOM_STATUS["last_status"] = f"Success: {stats}"

@@ -5,6 +5,7 @@ Fulfills Data Model and Addendum 1 & 2 schemas.
 """
 
 import json
+import os
 from datetime import datetime
 from typing import List, Dict, Optional, Any
 from sqlalchemy import (
@@ -340,8 +341,19 @@ class Feedback(Base):
 
 
 # Database Engine and Session Factory
-DATABASE_URL = "sqlite:///platform_v2.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Supports both SQLite (local dev) and PostgreSQL (production via DATABASE_URL env var)
+_raw_db_url = os.environ.get("DATABASE_URL", "sqlite:///platform_v2.db")
+
+# Render/Supabase provides postgres:// but SQLAlchemy 2.x needs postgresql://
+if _raw_db_url.startswith("postgres://"):
+    _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+
+DATABASE_URL = _raw_db_url
+
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_size=5, max_overflow=10)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
