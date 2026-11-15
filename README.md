@@ -24,6 +24,15 @@
 
 ---
 
+<div align="center">
+
+<h2>🎬 DeHype — Product Showcase</h2>
+
+https://github.com/user-attachments/assets/6b234df8-0a44-4851-8ba4-352ce6fcb73d
+
+</div>
+
+
 ## ⚡ The Problem: The AI Hype Crisis
 
 Every day, the world is inundated with thousands of AI headlines:
