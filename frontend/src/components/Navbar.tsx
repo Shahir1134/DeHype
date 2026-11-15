@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { m } from 'framer-motion'
 import { useAppStore } from '../store/useAppStore'
-import { signInWithGoogle, signOut } from '../lib/supabase'
+import { signInWithGoogle, signOut, initGoogleIdentityServices } from '../lib/supabase'
 import { 
   Newspaper, 
   GraduationCap, 
@@ -247,7 +247,18 @@ export const Navbar: React.FC = () => {
                 onClick={async () => {
                   try {
                     setIsSigningIn(true)
-                    await signInWithGoogle()
+                    if ((window as any).google?.accounts?.id) {
+                      initGoogleIdentityServices(() => {
+                        setIsSigningIn(false)
+                      })
+                      ;(window as any).google.accounts.id.prompt((notification: any) => {
+                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                          signInWithGoogle()
+                        }
+                      })
+                    } else {
+                      await signInWithGoogle()
+                    }
                   } catch (err) {
                     console.error('Sign in failed', err)
                   } finally {
