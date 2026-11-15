@@ -344,9 +344,11 @@ class Feedback(Base):
 # Supports both SQLite (local dev) and PostgreSQL (production via DATABASE_URL env var)
 _raw_db_url = os.environ.get("DATABASE_URL", "sqlite:///platform_v2.db")
 
-# Render/Supabase provides postgres:// but SQLAlchemy 2.x needs postgresql://
+# Normalize URL prefixes for SQLAlchemy + psycopg2
 if _raw_db_url.startswith("postgres://"):
-    _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+    _raw_db_url = _raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif _raw_db_url.startswith("postgresql://"):
+    _raw_db_url = _raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 DATABASE_URL = _raw_db_url
 

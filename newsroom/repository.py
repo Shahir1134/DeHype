@@ -12,12 +12,14 @@ from typing import List, Optional, Dict, Any
 logger = logging.getLogger(__name__)
 
 _raw_url = os.environ.get("DATABASE_URL", "platform_v2.db")
-# Normalize postgres:// → postgresql:// for SQLAlchemy compatibility
+# Normalize to psycopg2 dialect for SQLAlchemy compatibility
 if _raw_url.startswith("postgres://"):
-    _raw_url = _raw_url.replace("postgres://", "postgresql://", 1)
+    _raw_url = _raw_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif _raw_url.startswith("postgresql://"):
+    _raw_url = _raw_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 DB_PATH = _raw_url
-_IS_PG = DB_PATH.startswith("postgresql://") or DB_PATH.startswith("postgres")
+_IS_PG = "postgresql" in DB_PATH
 
 
 def _json_safe(value):
@@ -36,7 +38,9 @@ def _conn():
     if _IS_PG:
         import psycopg2
         import psycopg2.extras
-        conn = psycopg2.connect(DB_PATH)
+        # psycopg2 needs postgresql:// not postgresql+psycopg2://
+        raw = DB_PATH.replace("postgresql+psycopg2://", "postgresql://")
+        conn = psycopg2.connect(raw)
         conn.autocommit = False
         return conn
     else:
