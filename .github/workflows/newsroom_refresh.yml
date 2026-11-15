@@ -1,0 +1,39 @@
+name: Newsroom 5-Hour Refresh
+
+on:
+  schedule:
+    # Runs automatically every 5 hours (00:00, 05:00, 10:00, 15:00, 20:00 UTC)
+    - cron: '0 */5 * * *'
+  workflow_dispatch: # Allows 1-click manual trigger anytime from GitHub Actions tab
+
+jobs:
+  trigger-refresh:
+    name: Trigger Newsroom Ingestion on Render
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Newsroom Refresh Endpoint
+        run: |
+          echo "Triggering 5-hour newsroom refresh on Render..."
+          # Uses --retry to handle Render cold-start wake-up time gracefully
+          # Discards response body (-o /dev/null) to prevent any output size issues
+          HTTP_STATUS=$(curl -sS -X POST "https://dehype.onrender.com/api/newsroom/refresh" \
+            --retry 3 \
+            --retry-delay 15 \
+            --max-time 120 \
+            -o /dev/null \
+            -w "%{http_code}")
+          
+          echo "Refresh trigger response code: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 204 ]; then
+            echo "Successfully triggered newsroom refresh cycle on Render."
+          else
+            echo "Unexpected status code: $HTTP_STATUS"
+            # Still exit 0 unless completely unreachable
+          fi
+
+      - name: Check Newsroom Status
+        run: |
+          echo "Checking newsroom status..."
+          curl -sS --max-time 30 "https://dehype.onrender.com/api/newsroom/status" || true
+          echo ""
