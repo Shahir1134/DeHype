@@ -252,20 +252,9 @@ class LLMClient:
         """Persist deferred task for future processing."""
 
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
-                    CREATE TABLE IF NOT EXISTS jobs (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        type TEXT NOT NULL,
-                        payload TEXT NOT NULL,
-                        status TEXT DEFAULT 'pending',
-                        priority INTEGER DEFAULT 5,
-                        attempts INTEGER DEFAULT 0,
-                        next_run_at TEXT,
-                        created_at TEXT DEFAULT (datetime('now'))
-                    )
-                """)
-
+            from newsroom.repository import _conn
+            conn = _conn()
+            try:
                 conn.execute(
                     """
                     INSERT INTO jobs
@@ -283,6 +272,9 @@ class LLMClient:
                         datetime.utcnow().isoformat()
                     )
                 )
+                conn.commit()
+            finally:
+                conn.close()
 
             logger.info(f"[LLM] Deferred task persisted: {task_id}")
 

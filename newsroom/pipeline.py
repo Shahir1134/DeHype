@@ -20,7 +20,7 @@ from newsroom.repository import (
     ensure_newsroom_tables, start_run, finish_run,
     upsert_story, get_stories_needing_persona_cards,
     log_importance, get_pending_jobs, mark_job_done,
-    persist_story_sources
+    persist_story_sources, _conn
 )
 from newsroom.editor_agent import compute_score, king_of_hill
 from newsroom.card_generator import regenerate_cards_for_stories
@@ -110,7 +110,7 @@ def _update_story_dates(stories_in_db: int):
     shift the top 6 to today/yesterday so the feed shows content.
     Only runs in dev (when no stories within 7 days exist).
     """
-    conn = sqlite3.connect(DB_PATH)
+    conn = _conn()
     c = conn.cursor()
     today = date.today().isoformat()
     week_ago = (date.today() - timedelta(days=7)).isoformat()
@@ -355,7 +355,7 @@ def run_pipeline(live: bool = True, force_cards: bool = False) -> dict:
                 stats["published"] += 1
 
         # Keep DB dates fresh (dev fallback)
-        conn = sqlite3.connect(DB_PATH)
+        conn = _conn()
         c = conn.cursor()
         c.execute("SELECT COUNT(*) FROM stories WHERE signal_label='useful'")
         total_stories = c.fetchone()[0]

@@ -8,6 +8,7 @@ import sqlite3
 import os
 from datetime import datetime
 from typing import Dict, List, Optional
+from newsroom.repository import _conn
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +102,7 @@ def _needs_regen(
     new_importance: int
 ) -> bool:
 
-    conn = sqlite3.connect(DB_PATH, timeout=20.0)
-    conn.row_factory = sqlite3.Row
+    conn = _conn()
 
     try:
         card = conn.execute("""
@@ -383,7 +383,7 @@ def save_card(story_id: str, persona_id: str, card_data: Dict):
 
         spoken = f"{headline}. {what}".strip() or "AI news update."
 
-    conn = sqlite3.connect(DB_PATH, timeout=20.0)
+    conn = _conn()
 
     try:
         c = conn.cursor()
@@ -475,7 +475,7 @@ def make_deterministic_card(story: Dict, persona_id: str) -> Dict:
 
 
 def record_regen_attempt(story_id: str, persona_id: str):
-    conn = sqlite3.connect(DB_PATH, timeout=20.0)
+    conn = _conn()
 
     try:
         c = conn.cursor()
@@ -543,7 +543,7 @@ def regenerate_cards_for_stories(
         new_importance = story.get("importance", 3)
 
         try:
-            conn = sqlite3.connect(DB_PATH, timeout=20.0)
+            conn = _conn()
             c = conn.cursor()
 
             c.execute(
@@ -579,7 +579,7 @@ def regenerate_cards_for_stories(
                 continue
 
             # Check whether a card already exists.
-            conn = sqlite3.connect(DB_PATH, timeout=20.0)
+            conn = _conn()
 
             try:
                 existing = conn.execute("""

@@ -35,6 +35,14 @@ def _json_safe(value):
     return value
 
 
+class _RowDict(dict):
+    """Dict that supports both column-name access row['col'] and index access row[0] like sqlite3.Row."""
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            return list(self.values())[item]
+        return super().__getitem__(item)
+
+
 class _PGCursorWrapper:
     """Adapts a psycopg2 cursor to mimic sqlite3 cursor API with dict access."""
     def __init__(self, raw_cursor):
@@ -51,15 +59,18 @@ class _PGCursorWrapper:
                 cleaned_sql = cleaned_sql.rstrip(";\n ") + " ON CONFLICT DO NOTHING"
 
         if params is not None:
-            return self._cur.execute(cleaned_sql, params)
+            self._cur.execute(cleaned_sql, params)
         else:
-            return self._cur.execute(cleaned_sql)
+            self._cur.execute(cleaned_sql)
+        return self
 
     def fetchone(self):
-        return self._cur.fetchone()
+        row = self._cur.fetchone()
+        return _RowDict(row) if row is not None else None
 
     def fetchall(self):
-        return self._cur.fetchall()
+        rows = self._cur.fetchall()
+        return [_RowDict(r) for r in rows] if rows else []
 
     def __getattr__(self, name):
         return getattr(self._cur, name)
@@ -76,7 +87,8 @@ class _PGConnWrapper:
 
     def execute(self, sql, params=None):
         cur = self.cursor()
-        return cur.execute(sql, params)
+        cur.execute(sql, params)
+        return cur
 
     def commit(self):
         return self._conn.commit()
