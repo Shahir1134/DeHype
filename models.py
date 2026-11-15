@@ -355,7 +355,14 @@ DATABASE_URL = _raw_db_url
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_size=5, max_overflow=10)
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=False,       # skip health-check ping on every request
+        pool_size=10,              # keep 10 persistent connections warm
+        max_overflow=5,
+        pool_timeout=10,
+        pool_recycle=300,          # recycle connections every 5 min
+    )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

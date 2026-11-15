@@ -34,11 +34,28 @@ def _json_safe(value):
     return value
 
 
+# For Postgres, reuse a module-level connection pool via SQLAlchemy engine
+_pg_engine = None
+
+def _get_pg_engine():
+    global _pg_engine
+    if _pg_engine is None:
+        try:
+            from models import engine as _models_engine
+            _pg_engine = _models_engine
+        except Exception:
+            pass
+    return _pg_engine
+
+
 def _conn():
+    """Get a DB connection. For Postgres uses SQLAlchemy pooled connection."""
     if _IS_PG:
+        eng = _get_pg_engine()
+        if eng:
+            return eng.connect()
+        # Fallback: direct psycopg2
         import psycopg2
-        import psycopg2.extras
-        # psycopg2 needs postgresql:// not postgresql+psycopg2://
         raw = DB_PATH.replace("postgresql+psycopg2://", "postgresql://")
         conn = psycopg2.connect(raw)
         conn.autocommit = False

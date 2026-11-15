@@ -29,7 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, PlainTextResponse, JSONResponse
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import httpx
 
 from models import (
@@ -65,6 +65,10 @@ NEWSROOM_STATUS = {
     "run_count": 0
 }
 
+# Global in-memory Feed Cache (keyed by persona, user, limit, time_window)
+FEED_CACHE: Dict[str, Any] = {}
+FEED_CACHE_TTL = 120  # 2 minutes TTL
+
 def execute_newsroom_cycle():
     """Executes the newsroom pipeline in a background thread and busts stale cache."""
     if NEWSROOM_STATUS["is_running"]:
@@ -75,7 +79,7 @@ def execute_newsroom_cycle():
     try:
         from newsroom.pipeline import run_pipeline
         stats = run_pipeline(live=True)
-        # Clear catchup cache so fresh stories appear immediately
+        # Clear catchup cache and feed in-memory cache so fresh stories appear immediately
         try:
             db = SessionLocal()
             db.execute(__import__('sqlalchemy').text("DELETE FROM catchup_cache"))
@@ -83,6 +87,7 @@ def execute_newsroom_cycle():
             db.close()
         except Exception as ce:
             print(f"[Newsroom] Cache clear warning: {ce}")
+        FEED_CACHE.clear()
         NEWSROOM_STATUS["last_status"] = f"Success: {stats}"
         NEWSROOM_STATUS["run_count"] += 1
     except Exception as exc:
@@ -499,6 +504,14 @@ def get_feed(
     - 'Skip these today' collapsed hype/buzz items
     - Concept of the week from glossary
     """
+    # 0. Check in-memory cache first for instant sub-millisecond response
+    cache_key = f"{persona}_{user}_{limit}_{time_window}"
+    now_ts = datetime.now().timestamp()
+    if cache_key in FEED_CACHE:
+        cached_ts, cached_data = FEED_CACHE[cache_key]
+        if now_ts - cached_ts < FEED_CACHE_TTL:
+            return cached_data
+
     persona_config = get_persona_by_id(persona)
 
     # Fetch user interest weights
@@ -507,8 +520,25 @@ def get_feed(
         interests = db.query(Interest).filter(Interest.user_id == user).all()
         user_interests = {i.topic_tag: i.weight for i in interests}
 
-    # Fetch useful stories
-    useful_stories = db.query(Story).filter(Story.signal_label == "useful",Story.status == "verified").all()
+    # Fetch useful stories with eager-loaded sources and articles in a SINGLE batch query
+    useful_stories = (
+        db.query(Story)
+        .options(joinedload(Story.story_sources).joinedload(StorySource.article))
+        .filter(Story.signal_label == "useful", Story.status == "verified")
+        .all()
+    )
+
+    # Fetch all simple persona cards for this persona in a SINGLE batch query
+    raw_persona_cards = (
+        db.query(PersonaCard)
+        .filter(PersonaCard.persona_id == persona, PersonaCard.depth == "simple")
+        .order_by(PersonaCard.id.desc())
+        .all()
+    )
+    cards_by_story: Dict[str, PersonaCard] = {}
+    for c in raw_persona_cards:
+        if c.story_id not in cards_by_story and c.card_json:
+            cards_by_story[c.story_id] = c
 
     # Time filter by primary source published_at (Step 0 Rule 4: Past 24h | Past 7 days)
     
@@ -557,6 +587,11 @@ def get_feed(
             except (ValueError, TypeError, OverflowError) as e:
                 print(f"[Feed] Date parsing failed for {s.id}: {e}")
 
+        # Intelligent Fallback: if time_window filter returned 0 stories (e.g. quiet weekend or before next cycle),
+        # gracefully fall back to latest verified stories so the user is never left with an empty screen.
+        if not filtered_useful and useful_stories:
+            filtered_useful = useful_stories
+
         useful_stories = filtered_useful
 
  
@@ -585,15 +620,8 @@ def get_feed(
 
     for _, story in scored_stories:
         # Check source limit: at most 1 of 3 cards in Today from the same source (Step 0 Rule 5)
-            # Only display stories with an actual generated persona card.
-        existing_card = db.query(PersonaCard.id).filter(
-            PersonaCard.story_id == story.id,
-            PersonaCard.persona_id == persona,
-            PersonaCard.depth == "simple",
-            PersonaCard.card_json.isnot(None)
-        ).first()
-
-        if existing_card is None:
+        # Only display stories with an actual generated persona card (in-memory lookup, 0 DB round-trips)
+        if story.id not in cards_by_story:
             continue
         src_key = story.primary_source_url or story.title
         for ss in story.story_sources:
@@ -622,15 +650,8 @@ def get_feed(
     high_relevance_count = 0
 
     for s in selected_stories:
-        card = db.query(PersonaCard).filter(
-            PersonaCard.story_id == s.id,
-            PersonaCard.persona_id == persona,
-            PersonaCard.depth == "simple"
-        ).order_by(
-    PersonaCard.id.desc()).first()
-
-        
-        card_data = json.loads(card.card_json) if card else {}
+        card = cards_by_story.get(s.id)
+        card_data = json.loads(card.card_json) if card and card.card_json else {}
 
         # Normalize older flat-schema cards into the current rich schema
         if not isinstance(card_data, dict):
@@ -662,12 +683,9 @@ def get_feed(
         card_data["glance"] = glance
         card_data["explain"] = explain
 
-
-        # Fetch sources (Addendum 1: primary first, type badges)
-        sources = db.query(StorySource).filter(
-            StorySource.story_id == s.id,
-            StorySource.link_status == "ok"
-        ).order_by(StorySource.is_primary.desc()).all()
+        # Eagerly-loaded sources (0 extra DB round-trips)
+        sources = [ss for ss in s.story_sources if ss.link_status == "ok"]
+        sources.sort(key=lambda ss: bool(ss.is_primary), reverse=True)
 
         # Primary source published_at
         primary_pub = s.event_date
@@ -744,7 +762,7 @@ def get_feed(
         "plain_definition": cotw.plain_definition if cotw else "How much text an AI can process at once."
     }
 
-    return {
+    result = {
         "persona": persona_config,
         "run_date": datetime.now().strftime("%B %d, %Y"),
         "today_stories": today_cards,
@@ -758,6 +776,9 @@ def get_feed(
             "skipped_count": len(skip_today)
         }
     }
+
+    FEED_CACHE[cache_key] = (datetime.now().timestamp(), result)
+    return result
 
 
 @app.get("/story/{story_id}")
