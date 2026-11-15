@@ -1,8 +1,9 @@
 """
 Repository layer — all DB access goes through here.
-Supports SQLite (local) and PostgreSQL (production via DATABASE_URL env var).
+Supports SQLite (local dev) and PostgreSQL (production via DATABASE_URL env var).
 """
 import os
+import re
 import json
 import hashlib
 import logging
@@ -12,11 +13,11 @@ from typing import List, Optional, Dict, Any
 logger = logging.getLogger(__name__)
 
 _raw_url = os.environ.get("DATABASE_URL", "platform_v2.db")
-# Normalize to psycopg2 dialect for SQLAlchemy compatibility
+# Normalize postgresql+psycopg2:// or postgres:// for raw connection
 if _raw_url.startswith("postgres://"):
-    _raw_url = _raw_url.replace("postgres://", "postgresql+psycopg2://", 1)
-elif _raw_url.startswith("postgresql://"):
-    _raw_url = _raw_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    _raw_url = _raw_url.replace("postgres://", "postgresql://", 1)
+elif _raw_url.startswith("postgresql+psycopg2://"):
+    _raw_url = _raw_url.replace("postgresql+psycopg2://", "postgresql://", 1)
 
 DB_PATH = _raw_url
 _IS_PG = "postgresql" in DB_PATH
@@ -34,32 +35,69 @@ def _json_safe(value):
     return value
 
 
-# For Postgres, reuse a module-level connection pool via SQLAlchemy engine
-_pg_engine = None
+class _PGCursorWrapper:
+    """Adapts a psycopg2 cursor to mimic sqlite3 cursor API with dict access."""
+    def __init__(self, raw_cursor):
+        self._cur = raw_cursor
 
-def _get_pg_engine():
-    global _pg_engine
-    if _pg_engine is None:
-        try:
-            from models import engine as _models_engine
-            _pg_engine = _models_engine
-        except Exception:
-            pass
-    return _pg_engine
+    def execute(self, sql, params=None):
+        cleaned_sql = sql
+        # Convert SQLite ? placeholders to Postgres %s
+        cleaned_sql = re.sub(r'\?', '%s', cleaned_sql)
+        # Convert SQLite INSERT OR IGNORE INTO to Postgres ON CONFLICT DO NOTHING
+        if "INSERT OR IGNORE INTO" in cleaned_sql:
+            cleaned_sql = cleaned_sql.replace("INSERT OR IGNORE INTO", "INSERT INTO")
+            if "ON CONFLICT" not in cleaned_sql:
+                cleaned_sql = cleaned_sql.rstrip(";\n ") + " ON CONFLICT DO NOTHING"
+
+        if params is not None:
+            return self._cur.execute(cleaned_sql, params)
+        else:
+            return self._cur.execute(cleaned_sql)
+
+    def fetchone(self):
+        return self._cur.fetchone()
+
+    def fetchall(self):
+        return self._cur.fetchall()
+
+    def __getattr__(self, name):
+        return getattr(self._cur, name)
+
+
+class _PGConnWrapper:
+    """Adapts a psycopg2 connection to mimic sqlite3 connection API."""
+    def __init__(self, raw_conn):
+        self._conn = raw_conn
+
+    def cursor(self):
+        import psycopg2.extras
+        return _PGCursorWrapper(self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor))
+
+    def execute(self, sql, params=None):
+        cur = self.cursor()
+        return cur.execute(sql, params)
+
+    def commit(self):
+        return self._conn.commit()
+
+    def rollback(self):
+        return self._conn.rollback()
+
+    def close(self):
+        return self._conn.close()
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
 
 
 def _conn():
-    """Get a DB connection. For Postgres uses SQLAlchemy pooled connection."""
+    """Returns a connection supporting standard cursor execute/dict access."""
     if _IS_PG:
-        eng = _get_pg_engine()
-        if eng:
-            return eng.connect()
-        # Fallback: direct psycopg2
         import psycopg2
-        raw = DB_PATH.replace("postgresql+psycopg2://", "postgresql://")
-        conn = psycopg2.connect(raw)
-        conn.autocommit = False
-        return conn
+        raw_conn = psycopg2.connect(DB_PATH)
+        raw_conn.autocommit = False
+        return _PGConnWrapper(raw_conn)
     else:
         import sqlite3
         conn = sqlite3.connect(DB_PATH, timeout=20.0)
@@ -69,36 +107,12 @@ def _conn():
         return conn
 
 
-def _cur(conn):
-    """Return a cursor with dict-like row access regardless of backend."""
-    if _IS_PG:
-        import psycopg2.extras
-        return conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    return conn.cursor()
-
-
-def _q(sql: str) -> str:
-    """Convert SQLite ? placeholders to Postgres %s, and INSERT OR IGNORE to INSERT ... ON CONFLICT DO NOTHING."""
-    if _IS_PG:
-        import re
-        sql = sql.replace("INSERT INTO", "INSERT INTO")
-        sql = sql.replace("INSERT INTO", "INSERT INTO")
-        # Replace ? with %s
-        sql = re.sub(r'\?', '%s', sql)
-        # Append ON CONFLICT DO NOTHING if it was an INSERT OR IGNORE
-        if "INSERT INTO" in sql and "ON CONFLICT" not in sql and "INSERT OR" not in sql:
-            pass  # normal inserts left as-is
-        return sql
-    return sql
-
-
 def ensure_newsroom_tables():
-    """Create newsroom tables if they don't exist (idempotent). Works with SQLite and Postgres."""
+    """Create newsroom tables if they don't exist (idempotent)."""
     conn = _conn()
-    c = _cur(conn)
+    c = conn.cursor()
 
     if _IS_PG:
-        # PostgreSQL syntax
         statements = [
             """CREATE TABLE IF NOT EXISTS jobs (
                 id SERIAL PRIMARY KEY,
@@ -139,18 +153,16 @@ def ensure_newsroom_tables():
                 story_id TEXT NOT NULL,
                 what_changed TEXT,
                 corrected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )""",
+            )"""
         ]
         for sql in statements:
             c.execute(sql)
-        # Add columns if missing (Postgres version)
         for col, coltype in [("numbers_json", "TEXT DEFAULT '[]'"), ("content_hash", "TEXT DEFAULT ''")]:
             try:
                 c.execute(f"ALTER TABLE stories ADD COLUMN {col} {coltype}")
             except Exception:
-                pass  # column already exists
+                pass
     else:
-        # SQLite syntax
         c.executescript("""
             CREATE TABLE IF NOT EXISTS jobs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -162,6 +174,7 @@ def ensure_newsroom_tables():
                 next_run_at TEXT,
                 created_at TEXT DEFAULT (datetime('now'))
             );
+
             CREATE TABLE IF NOT EXISTS runs (
                 id TEXT PRIMARY KEY,
                 started_at TEXT,
@@ -175,6 +188,7 @@ def ensure_newsroom_tables():
                 llm_calls INTEGER DEFAULT 0,
                 errors TEXT DEFAULT '[]'
             );
+
             CREATE TABLE IF NOT EXISTS importance_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 story_id TEXT NOT NULL,
@@ -186,6 +200,7 @@ def ensure_newsroom_tables():
                 reason TEXT,
                 logged_at TEXT DEFAULT (datetime('now'))
             );
+
             CREATE TABLE IF NOT EXISTS corrections (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 story_id TEXT NOT NULL,
@@ -193,11 +208,11 @@ def ensure_newsroom_tables():
                 corrected_at TEXT DEFAULT (datetime('now'))
             );
         """)
-        columns = [row[1] for row in c.execute(_q("PRAGMA table_info(stories)").fetchall()]
+        columns = [row[1] for row in c.execute("PRAGMA table_info(stories)").fetchall()]
         if "numbers_json" not in columns:
-            c.execute(_q("ALTER TABLE stories ADD COLUMN numbers_json TEXT DEFAULT '[]'")
+            c.execute("ALTER TABLE stories ADD COLUMN numbers_json TEXT DEFAULT '[]'")
         if "content_hash" not in columns:
-            c.execute(_q("ALTER TABLE stories ADD COLUMN content_hash TEXT DEFAULT ''")
+            c.execute("ALTER TABLE stories ADD COLUMN content_hash TEXT DEFAULT ''")
 
     conn.commit()
     conn.close()
@@ -207,11 +222,10 @@ def ensure_newsroom_tables():
 def start_run(run_id: str) -> bool:
     """Lock: returns False if another run is actively running (<10m old)."""
     conn = _conn()
-    c = _cur(conn)
-    c.execute(_q("SELECT id, started_at FROM runs WHERE status='running'")
+    c = conn.cursor()
+    c.execute("SELECT id, started_at FROM runs WHERE status='running'")
     active = c.fetchone()
     if active:
-        # Check if stale (older than 10 mins = crashed/killed)
         started_str = active["started_at"]
         is_stale = False
         try:
@@ -223,7 +237,7 @@ def start_run(run_id: str) -> bool:
 
         if is_stale:
             logger.warning(f"[Repo] Previous run {active['id']} was abandoned/crashed — clearing lock.")
-            c.execute(_q("UPDATE runs SET status='crashed', finished_at=? WHERE id=?", (datetime.utcnow().isoformat(), active['id']))
+            c.execute("UPDATE runs SET status='crashed', finished_at=? WHERE id=?", (datetime.utcnow().isoformat(), active['id']))
             conn.commit()
         else:
             logger.warning(f"[Repo] Run {active['id']} actively running — skipping.")
@@ -231,7 +245,7 @@ def start_run(run_id: str) -> bool:
             return False
 
     c.execute(
-        "INSERT INTO runs (id, started_at, status) VALUES (?,?,?)",
+        "INSERT OR IGNORE INTO runs (id, started_at, status) VALUES (?,?,?)",
         (run_id, datetime.utcnow().isoformat(), "running")
     )
     conn.commit()
@@ -241,8 +255,8 @@ def start_run(run_id: str) -> bool:
 
 def finish_run(run_id: str, stats: Dict):
     conn = _conn()
-    c = _cur(conn)
-    c.execute(_q("""
+    c = conn.cursor()
+    c.execute("""
         UPDATE runs SET finished_at=?, status=?, fetched=?, kept=?, published=?,
         needs_review=?, rejected=?, llm_calls=?, errors=?
         WHERE id=?
@@ -262,14 +276,13 @@ def finish_run(run_id: str, stats: Dict):
     conn.close()
 
 
-
 def upsert_story(story: Dict) -> bool:
     """
     Idempotent upsert keyed on story ID and content hash.
     Returns True if new/updated, False if unchanged.
     """
     conn = _conn()
-    c = _cur(conn)
+    c = conn.cursor()
 
     try:
         sid = story["id"]
@@ -283,12 +296,10 @@ def upsert_story(story: Dict) -> bool:
 
         if existing:
             stored_hash = existing["content_hash"] or ""
-
-            # Skip only when the incoming content matches stored content.
             if content_hash and stored_hash == content_hash:
                 return False
 
-            c.execute(_q("""
+            c.execute("""
                 UPDATE stories SET
                     title=?,
                     event_date=?,
@@ -316,12 +327,11 @@ def upsert_story(story: Dict) -> bool:
                 content_hash,
                 sid
             ))
-
             conn.commit()
             return True
 
         # Insert new story
-        c.execute(_q("""
+        c.execute("""
             INSERT INTO stories (
                 id, title, event_date, signal_label, signal_tier,
                 importance, status, source_count, topic_tags_raw,
@@ -346,145 +356,73 @@ def upsert_story(story: Dict) -> bool:
             json.dumps(_json_safe(story.get("numbers", []))),
             content_hash
         ))
-
         conn.commit()
         return True
 
     except Exception:
         conn.rollback()
-        logger.exception("[Repository] Failed to upsert story")
+        logger.exception("[Repository] Failed to upsert story %s", story.get("id"))
         raise
-
     finally:
         conn.close()
 
-    existing = c.fetchone()
-    if existing:
-        # Only update if content changed
-        c.execute(_q("SELECT importance FROM stories WHERE id=?", (sid,))
-        row = c.fetchone()
-        stored_hash = existing["content_hash"] or ""
 
-        if content_hash and stored_hash == content_hash:
-            conn.close()
-            return False
-        c.execute(_q("""
-            UPDATE stories SET title=?, event_date=?, signal_label=?, signal_tier=?,
-            importance=?, status=?, source_count=?, topic_tags_raw=?, facts_json=?,numbers_json=?,content_hash=?
-            WHERE id=?
-        """, (
-            story.get("title"), story.get("event_date"), story.get("signal_label", "useful"),
-            story.get("signal_tier"), story.get("importance", 3), story.get("status", "verified"),
-            story.get("source_count", 1),
-            json.dumps(_json_safe(story.get("topic_tags", []))),
-            json.dumps(_json_safe(story.get("facts", []))),
-            json.dumps(_json_safe(story.get("numbers", []))),
-            sid
-        ))
-        conn.commit()
-        conn.close()
-        return True
-    # Insert new
-    c.execute(_q("""
-        INSERT INTO stories (id, title, event_date, signal_label, signal_tier,
-        importance, status, source_count, topic_tags_raw, facts_json,
-        primary_source_url, confidence, is_milestone, numbers_json)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    """, (
-        
-        sid, story.get("title"), story.get("event_date"),
-        story.get("signal_label", "useful"), story.get("signal_tier"),
-        story.get("importance", 3), story.get("status", "verified"),
-        story.get("source_count", 1), 
-        json.dumps(_json_safe(story.get("topic_tags", []))),
-        json.dumps(_json_safe(story.get("facts", []))), story.get("primary_source_url"),
-        story.get("confidence", 0.9), story.get("is_milestone", False),
-        json.dumps(_json_safe(story.get("numbers", [])))
-    ))
-    conn.commit()
-    conn.close()
-    return True
-
-def persist_story_sources(story_id: str, cluster: list) -> int:
-    """
-    Persist clustered RawArticle records and connect them to a story.
-    Safe to call repeatedly: existing articles and links are not duplicated.
-    """
+def persist_story_sources(story_id: str, extracted_articles: List[Any]) -> int:
+    """Stores sources/articles for a story idempotently."""
     conn = _conn()
-    c = _cur(conn)
+    c = conn.cursor()
     saved = 0
 
     try:
-        for index, art in enumerate(cluster):
-            url = (art.source_url or "").strip()[:512]
-            if not url:
+        for index, art in enumerate(extracted_articles):
+            raw_url = getattr(art, "url", None) or ""
+            url = raw_url.strip()
+            if not url or not url.startswith("http"):
                 continue
 
-            source_name = (art.source_name or "Unknown Source").strip()
             parsed = urlparse(url)
+            source_name = parsed.netloc.replace("www.", "")
+            source_id = f"source-{hashlib.md5(source_name.encode('utf-8')).hexdigest()[:8]}"
+            article_id = f"art-{hashlib.md5(url.encode('utf-8')).hexdigest()[:12]}"
 
-            if not parsed.scheme or not parsed.netloc:
-                continue
-
-            # Classify source using the fetcher's known source identity.
-            name_lower = source_name.lower()
-            if "arxiv" in name_lower:
-                source_type = "preprint"
-                badge = "Research"
-            elif "hacker news" in name_lower:
-                source_type = "forum"
+            badge = "News"
+            lower_name = source_name.lower()
+            if any(term in lower_name for term in ["blog.", "openai", "google", "meta", "anthropic", "github"]):
+                badge = "Official"
+            elif any(term in lower_name for term in ["arxiv", "biorxiv", "openreview"]):
+                badge = "Research (not peer reviewed)"
+            elif any(term in lower_name for term in ["reddit", "hacker news", "ycombinator", "discord"]):
                 badge = "Community discussion"
-            elif "techcrunch" in name_lower:
-                source_type = "news"
-                badge = "News"
-            else:
-                source_type = "news"
-                badge = "News"
+            elif any(term in lower_name for term in ["nist", "europa.eu", "gov", "cisa"]):
+                badge = "Government"
 
-            # Stable IDs prevent duplicate source/article records.
-            source_hash = hashlib.sha256(
-                source_name.lower().encode("utf-8")
-            ).hexdigest()[:24]
-            source_id = f"src-{source_hash}"
-
-            article_hash = hashlib.sha256(
-                url.encode("utf-8")
-            ).hexdigest()[:32]
-            article_id = f"art-{article_hash}"
-
-            base_url = f"{parsed.scheme}://{parsed.netloc}"
-
-            # Create source if it does not exist.
-            c.execute(_q("""
-                INSERT INTO sources
+            c.execute("""
+                INSERT OR IGNORE INTO sources
                 (id, name, type, feed_url)
                 VALUES (?, ?, ?, ?)
-            """, (source_id, source_name[:128], source_type, base_url))
+            """, (source_id, source_name, "news", f"https://{parsed.netloc}"))
 
-            # Store metadata and the short fetched summary only.
-            c.execute(_q("""
-                INSERT INTO articles
+            c.execute("""
+                INSERT OR IGNORE INTO articles
                 (id, source_id, url, title, published_at, own_words_summary)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (
                 article_id,
                 source_id,
                 url,
-                (art.title or "Untitled")[:256],
-                (art.date or datetime.utcnow().strftime("%Y-%m-%d"))[:32],
-                (art.summary or art.title or "No summary available")[:5000]
+                (getattr(art, "title", None) or "Untitled")[:256],
+                (getattr(art, "date", None) or datetime.utcnow().strftime("%Y-%m-%d"))[:32],
+                (getattr(art, "summary", None) or getattr(art, "title", None) or "No summary available")[:5000]
             ))
 
-            # Resolve the actual article ID in case this URL already existed.
-            c.execute(_q("SELECT id FROM articles WHERE url = ?", (url,))
+            c.execute("SELECT id FROM articles WHERE url = ?", (url,))
             article_row = c.fetchone()
             if not article_row:
                 continue
 
             actual_article_id = article_row["id"]
 
-            # Avoid duplicate story/article relationships.
-            c.execute(_q("""
+            c.execute("""
                 SELECT id FROM story_sources
                 WHERE story_id = ? AND url = ?
             """, (story_id, url))
@@ -492,7 +430,7 @@ def persist_story_sources(story_id: str, cluster: list) -> int:
             if c.fetchone():
                 continue
 
-            c.execute(_q("""
+            c.execute("""
                 INSERT INTO story_sources
                 (story_id, article_id, origin_id, url, display_label,
                  type_badge, is_primary, link_status)
@@ -507,7 +445,6 @@ def persist_story_sources(story_id: str, cluster: list) -> int:
                 index == 0,
                 "ok"
             ))
-
             saved += 1
 
         conn.commit()
@@ -515,36 +452,24 @@ def persist_story_sources(story_id: str, cluster: list) -> int:
 
     except Exception:
         conn.rollback()
-        logger.exception(
-            "[Repository] Failed to persist sources for story %s",
-            story_id
-        )
+        logger.exception("[Repository] Failed to persist sources for story %s", story_id)
         raise
     finally:
         conn.close()
 
 
 def get_stories_needing_persona_cards(persona_ids: List[str], candidate_stories: Optional[List[Dict]] = None) -> List[Dict]:
-    """
-    Gap fix 2: Only return stories where persona cards are missing or stale.
-    Rules:
-      - No card at all → needs generation
-      - Story updated (content changed) → needs generation
-      - Card older than 7 days → needs generation
-      - Story unchanged + card fresh → skip
-    """
+    """Returns stories where persona cards are missing or stale (>7 days old)."""
     conn = _conn()
-    c = _cur(conn)
+    c = conn.cursor()
     cutoff = (datetime.utcnow() - timedelta(days=7)).isoformat()
 
     story_pool: Dict[str, Dict] = {}
-
     if candidate_stories:
         for cs in candidate_stories:
             story_pool[cs["id"]] = cs
 
-    # Also grab recent verified/useful stories from DB
-    c.execute(_q("""
+    c.execute("""
         SELECT id, title, event_date, signal_label, importance, facts_json, topic_tags_raw
         FROM stories
         WHERE LOWER(signal_label)='useful' AND status='verified'
@@ -559,7 +484,7 @@ def get_stories_needing_persona_cards(persona_ids: List[str], candidate_stories:
     for sid, story in story_pool.items():
         needs = False
         for persona_id in persona_ids:
-            c.execute(_q("""
+            c.execute("""
                 SELECT id, verified_at FROM persona_cards
                 WHERE story_id=? AND persona_id=? AND depth='simple'
             """, (sid, persona_id))
@@ -567,9 +492,8 @@ def get_stories_needing_persona_cards(persona_ids: List[str], candidate_stories:
             if not card:
                 needs = True
                 break
-            # Check if card is stale
-            gen_at = card["verified_at"] if "verified_at" in card.keys() else None
-            if gen_at and gen_at < cutoff:
+            gen_at = card.get("verified_at") if isinstance(card, dict) else (card["verified_at"] if "verified_at" in card.keys() else None)
+            if gen_at and str(gen_at) < cutoff:
                 needs = True
                 break
         if needs:
@@ -581,8 +505,8 @@ def get_stories_needing_persona_cards(persona_ids: List[str], candidate_stories:
 
 def get_pending_jobs(limit: int = 10) -> List[Dict]:
     conn = _conn()
-    c = _cur(conn)
-    c.execute(_q("""
+    c = conn.cursor()
+    c.execute("""
         SELECT * FROM jobs WHERE status='pending'
         ORDER BY priority ASC, created_at ASC LIMIT ?
     """, (limit,))
@@ -593,14 +517,16 @@ def get_pending_jobs(limit: int = 10) -> List[Dict]:
 
 def mark_job_done(job_id: int):
     conn = _conn()
-    conn.execute("UPDATE jobs SET status='done' WHERE id=?", (job_id,))
+    c = conn.cursor()
+    c.execute("UPDATE jobs SET status='done' WHERE id=?", (job_id,))
     conn.commit()
     conn.close()
 
 
 def log_importance(story_id: str, run_id: str, score: float, reason: str, **kwargs):
     conn = _conn()
-    conn.execute("""
+    c = conn.cursor()
+    c.execute("""
         INSERT INTO importance_log (story_id, run_id, recency, source_weight, signal_weight, score, reason)
         VALUES (?,?,?,?,?,?,?)
     """, (
@@ -614,8 +540,8 @@ def log_importance(story_id: str, run_id: str, score: float, reason: str, **kwar
 
 def get_last_run_summary() -> Optional[Dict]:
     conn = _conn()
-    c = _cur(conn)
-    c.execute(_q("SELECT * FROM runs WHERE status='done' ORDER BY finished_at DESC LIMIT 1")
+    c = conn.cursor()
+    c.execute("SELECT * FROM runs WHERE status='done' ORDER BY finished_at DESC LIMIT 1")
     row = c.fetchone()
     conn.close()
     return dict(row) if row else None
